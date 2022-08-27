@@ -1,3 +1,6 @@
+//! [![crates.io](https://img.shields.io/crates/v/bevy-aabb-instancing)](https://crates.io/crates/bevy-aabb-instancing)
+//! [![docs.rs](https://docs.rs/bevy-aabb-instancing/badge.svg)](https://docs.rs/bevy-aabb-instancing)
+//!
 //! Render millions of AABBs every frame with an instancing renderer.
 //!
 //! ![Example](https://raw.githubusercontent.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/main/examples/wave.png)
