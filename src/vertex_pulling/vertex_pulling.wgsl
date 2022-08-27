@@ -52,7 +52,10 @@ var<storage> cuboids: Cuboids;
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) color: vec4<f32>,
+
+    #ifdef OUTLINES
     @location(1) face_center_to_corner: vec2<f32>,
+    #endif
 };
 
 @vertex
@@ -100,6 +103,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
         f32(cuboid.color >> 24u)
     ) / 255.0;
 
+    #ifdef OUTLINES
     let centroid_to_corner = 2.0 * (cube_corner - vec3<f32>(0.5));
     let face = (vertex_index >> 3u) & 0x3u;
     if face == 0u {
@@ -109,14 +113,18 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     } else {
         out.face_center_to_corner = centroid_to_corner.yz;
     }
+    #endif
 
     return out;
 }
 
 struct FragmentInput {
     @location(0) color: vec4<f32>,
+
+    #ifdef OUTLINES
     // "normalized face coordinates" in [-1, 1]^2
     @location(1) face_center_to_fragment: vec2<f32>,
+    #endif
 };
 
 // Constant-pixel-width edges:
@@ -124,10 +132,18 @@ struct FragmentInput {
 
 @fragment
 fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
+    #ifdef OUTLINES
+
     let frag_to_edge = vec2<f32>(1.0) - abs(in.face_center_to_fragment);
     let deltas = fwidth(frag_to_edge);
     let step = smoothstep(vec2<f32>(0.0), deltas, frag_to_edge);
     let min_step = min(step.x, step.y);
     let edge_factor = mix(0.1, 1.0, min_step);
     return edge_factor * in.color;
+
+    #else
+
+    return in.color;
+
+    #endif
 }

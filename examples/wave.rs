@@ -6,7 +6,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(Msaa { samples: 1 })
-        .add_plugin(VertexPullingRenderPlugin)
+        .add_plugin(VertexPullingRenderPlugin { outlines: false })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
         .add_startup_system(setup)
@@ -31,7 +31,7 @@ fn setup(mut commands: Commands) {
                     instances.push(Cuboid::new(
                         min,
                         max,
-                        Color::hsl(y.abs() % 360.0, 1.0, 0.5).as_rgba_u32(),
+                        Color::hsl(d % 360.0, 1.0, 0.5).as_rgba_u32(),
                     ));
                 }
             }

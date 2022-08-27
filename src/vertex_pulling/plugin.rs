@@ -3,7 +3,7 @@ use super::draw::{ClippingPlanesMeta, DrawCuboids, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids, CuboidsTransform};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pass_node::{self, CuboidsPassNode};
-use super::pipeline::{CuboidsPipeline, VERTEX_PULLING_SHADER_HANDLE};
+use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
 use super::prepare::{prepare_clipping_planes, prepare_cuboids, GpuClippingPlaneRanges};
 use super::queue::{queue_cuboids, queue_cuboids_view_bind_group};
 
@@ -20,7 +20,10 @@ use bevy::{
 };
 
 /// Renders the [`Cuboids`](crate::Cuboids) component using the "vertex pulling" technique.
-pub struct VertexPullingRenderPlugin;
+#[derive(Default)]
+pub struct VertexPullingRenderPlugin {
+    pub outlines: bool,
+}
 
 impl Plugin for VertexPullingRenderPlugin {
     fn build(&self, app: &mut App) {
@@ -35,6 +38,11 @@ impl Plugin for VertexPullingRenderPlugin {
         if let Some(msaa) = maybe_msaa {
             render_app.insert_resource(msaa.clone());
         }
+        let mut shader_defs = CuboidsShaderDefs::default();
+        if self.outlines {
+            shader_defs.enable_outlines();
+        }
+        render_app.insert_resource(shader_defs);
 
         render_app
             .add_render_command::<Opaque3d, DrawCuboids>()
