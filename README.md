@@ -4,13 +4,22 @@ Render millions of AABBs every frame with an instancing renderer.
 
 ![Example](https://raw.githubusercontent.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/main/examples/wave.png)
 
-## Plugins
+## Demo
 
-The [`VertexPullingRenderPlugin`] uses the "vertex pulling" technique to
-render all entities with a [`Cuboids`] component. In vertex pulling, rather
-than pushing vertex attributes through the shader pipeline, you only push an
-index buffer, and the shader "pulls" your instance data from a storage
-buffer by decoding the `vertex_index` input.
+```sh
+cargo run --example wave --release
+```
+
+## Features
+
+- vertex pulling renderer
+- cuboid outlining
+- clipping planes
+
+## License
+
+Licensed under the Apache License Version 2.0 by opyright holders Duncan
+Fairbanks and Foresight Mining Software Corporation.
 
 ### Sponsors
 
