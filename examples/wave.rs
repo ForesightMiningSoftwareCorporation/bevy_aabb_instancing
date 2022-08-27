@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_aabb_instancing::{Cuboid, Cuboids, VertexPullingRenderPlugin};
+use bevy_aabb_instancing::{cuboids_aabb, Cuboid, Cuboids, VertexPullingRenderPlugin};
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
@@ -16,8 +16,6 @@ fn main() {
 fn setup(mut commands: Commands) {
     for x_batch in 0..20 {
         for z_batch in 0..20 {
-            let mut batch_min = Vec3::splat(f32::MAX);
-            let mut batch_max = Vec3::splat(f32::MIN);
             let mut instances = Vec::with_capacity(10_000);
             for x in 0..100 {
                 for z in 0..100 {
@@ -30,8 +28,6 @@ fn setup(mut commands: Commands) {
                     let h = 0.01 * d;
                     let min = c - Vec3::new(0.5, h, 0.5);
                     let max = c + Vec3::new(0.5, h, 0.5);
-                    batch_min = batch_min.min(min);
-                    batch_max = batch_max.max(max);
                     instances.push(Cuboid::new(
                         min,
                         max,
@@ -39,12 +35,10 @@ fn setup(mut commands: Commands) {
                     ));
                 }
             }
+            let aabb = cuboids_aabb(&instances);
             commands
                 .spawn_bundle(SpatialBundle::default())
-                .insert_bundle((
-                    Cuboids::new(instances),
-                    bevy::render::primitives::Aabb::from_min_max(batch_min, batch_max),
-                ));
+                .insert_bundle((Cuboids::new(instances), aabb));
         }
     }
 
