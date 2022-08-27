@@ -1,10 +1,10 @@
 [package]
 name = "bevy-aabb-instancing"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 description = "Render millions of AABB instances in Bevy."
 keywords = ["bevy", "aabb", "cube", "instancing", "render"]
-license-file = "../LICENSE"
+license-file = "LICENSE"
 repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/"
 
 [features]
