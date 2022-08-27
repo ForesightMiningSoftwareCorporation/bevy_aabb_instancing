@@ -14,32 +14,36 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    let mut instances = Vec::with_capacity(1_000_000);
-    let mut total_min = Vec3::splat(f32::MAX);
-    let mut total_max = Vec3::splat(f32::MIN);
-    for x in 0..1000 {
-        for z in 0..1000 {
-            let x = x as f32 - 500.0;
-            let z = z as f32 - 500.0;
-            let y = 0.2 * (x * x + z * z).sqrt() * ((0.05 * x).cos() + (0.05 * z).sin());
-            let c = Vec3::new(x, 0.0, z);
-            let min = c - Vec3::new(0.5, y.max(0.0), 0.5);
-            let max = c + Vec3::new(0.5, y.max(0.0), 0.5);
-            total_min = total_min.min(min);
-            total_max = total_max.max(max);
-            instances.push(Cuboid::new(
-                min,
-                max,
-                Color::hsl(y % 360.0, 1.0, 0.5).as_rgba_f32(),
-            ));
+    for x_batch in 0..10 {
+        for z_batch in 0..10 {
+            let mut batch_min = Vec3::splat(f32::MAX);
+            let mut batch_max = Vec3::splat(f32::MIN);
+            let mut instances = Vec::with_capacity(10_000);
+            for x in 0..100 {
+                for z in 0..100 {
+                    let x = (x_batch * 100) as f32 + x as f32 - 500.0;
+                    let z = (z_batch * 100) as f32 + z as f32 - 500.0;
+                    let y = 0.2 * (x * x + z * z).sqrt() * ((0.05 * x).cos() + (0.05 * z).sin());
+                    let c = Vec3::new(x, 0.0, z);
+                    let min = c - Vec3::new(0.5, y.max(0.0), 0.5);
+                    let max = c + Vec3::new(0.5, y.max(0.0), 0.5);
+                    batch_min = batch_min.min(min);
+                    batch_max = batch_max.max(max);
+                    instances.push(Cuboid::new(
+                        min,
+                        max,
+                        Color::hsl(y % 360.0, 1.0, 0.5).as_rgba_f32(),
+                    ));
+                }
+            }
+            commands
+                .spawn_bundle(SpatialBundle::default())
+                .insert_bundle((
+                    Cuboids::new(instances),
+                    bevy::render::primitives::Aabb::from_min_max(batch_min, batch_max),
+                ));
         }
     }
-    commands
-        .spawn_bundle(SpatialBundle::default())
-        .insert_bundle((
-            Cuboids::new(instances),
-            bevy::render::primitives::Aabb::from_min_max(total_min, total_max),
-        ));
 
     commands
         .spawn_bundle(Camera3dBundle::default())
