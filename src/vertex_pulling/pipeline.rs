@@ -96,6 +96,7 @@ impl FromWorld for CuboidsPipeline {
             }],
         });
 
+        let sample_count = world.get_resource::<Msaa>().map(|m| m.samples).unwrap_or(1);
         let mut pipeline_cache = world.resource_mut::<PipelineCache>();
         let pipeline_id = pipeline_cache.queue_render_pipeline(RenderPipelineDescriptor {
             label: Some("cuboids_pipeline".into()),
@@ -147,7 +148,7 @@ impl FromWorld for CuboidsPipeline {
                 },
             }),
             multisample: MultisampleState {
-                count: Msaa::default().samples,
+                count: sample_count,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },

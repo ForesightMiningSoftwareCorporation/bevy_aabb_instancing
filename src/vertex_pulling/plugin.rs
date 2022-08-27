@@ -29,7 +29,12 @@ impl Plugin for VertexPullingRenderPlugin {
             Shader::from_wgsl(include_str!("vertex_pulling.wgsl")),
         );
 
+        let maybe_msaa = app.world.get_resource::<Msaa>().cloned();
         let render_app = app.sub_app_mut(RenderApp);
+
+        if let Some(msaa) = maybe_msaa {
+            render_app.insert_resource(msaa.clone());
+        }
 
         render_app
             .add_render_command::<Opaque3d, DrawCuboids>()
