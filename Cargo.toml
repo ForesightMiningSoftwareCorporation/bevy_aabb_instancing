@@ -1,0 +1,24 @@
+[package]
+name = "bevy-aabb-instancing"
+version = "0.2.1"
+edition = "2021"
+description = "Render millions of AABB instances in Bevy."
+keywords = ["bevy", "aabb", "cube", "instancing", "render"]
+license-file = "../LICENSE"
+repository = "https://github.com/ForesightMiningSoftwareCorporation/BVHRenderer_Bevy/"
+
+[features]
+trace = ["bevy/trace_chrome"]
+
+[dependencies]
+ahash = "0.7"
+bitvec = "1.0"
+bytemuck = { version = "1.7", features = ["derive"] }
+
+[dependencies.bevy]
+version = "0.8"
+default-features = false
+features = ["bevy_asset", "bevy_core_pipeline", "bevy_render", "x11"]
+
+[dev-dependencies]
+smooth-bevy-cameras = { git = "https://github.com/bonsairobo/smooth-bevy-cameras", rev = "a1095b9bc" }
