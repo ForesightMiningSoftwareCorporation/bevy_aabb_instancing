@@ -5,7 +5,7 @@ edition = "2021"
 description = "Render millions of AABB instances in Bevy."
 keywords = ["bevy", "aabb", "cube", "instancing", "render"]
 license-file = "../LICENSE"
-repository = "https://github.com/ForesightMiningSoftwareCorporation/BVHRenderer_Bevy/"
+repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/"
 
 [features]
 trace = ["bevy/trace_chrome"]

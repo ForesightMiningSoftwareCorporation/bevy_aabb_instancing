@@ -13,7 +13,9 @@
 //! ## Sponsors
 //!
 //! The creation and maintenance of `bevy_aabb_instancing` is sponsored by
-//! Foresight Mining Software Corporation. <img
+//! Foresight Mining Software Corporation.
+//!
+//! <img
 //! src="https://user-images.githubusercontent.com/2632925/151242316-db3455d1-4934-4374-8369-1818daf512dd.png"
 //! alt="Foresight Mining Software Corporation" width="480">
 
