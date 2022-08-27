@@ -21,7 +21,7 @@ cargo run --example wave --release
 
 ## License
 
-Licensed under the Apache License Version 2.0 by opyright holders Duncan
+Licensed under the Apache License Version 2.0 by copyright holders Duncan
 Fairbanks and Foresight Mining Software Corporation.
 
 ### Sponsors
