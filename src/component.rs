@@ -11,11 +11,11 @@ use bytemuck::{Pod, Zeroable};
 pub struct Cuboid {
     pub minimum: Vec3,
     pub maximum: Vec3,
-    pub color_rgba: [f32; 4],
+    pub color_rgba: u32, // Encoded from Color::as_rgba_u32
 }
 
 impl Cuboid {
-    pub fn new(minimum: Vec3, maximum: Vec3, color_rgba: [f32; 4]) -> Self {
+    pub fn new(minimum: Vec3, maximum: Vec3, color_rgba: u32) -> Self {
         Self {
             minimum,
             maximum,

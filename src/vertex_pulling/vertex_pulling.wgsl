@@ -25,7 +25,7 @@ struct ClippingPlaneRanges {
 struct Cuboid {
     min: vec3<f32>,
     max: vec3<f32>,
-    color: vec4<f32>,
+    color: u32,
 };
 
 struct Cuboids {
@@ -93,7 +93,12 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 
     var out: VertexOutput;
     out.clip_position = view.view_proj * world_position;
-    out.color = cuboid.color;
+    out.color = vec4<f32>(
+        f32(cuboid.color & 0xFFu),
+        f32((cuboid.color >> 8u) & 0xFFu),
+        f32((cuboid.color >> 16u) & 0xFFu),
+        f32(cuboid.color >> 24u)
+    ) / 255.0;
 
     let centroid_to_corner = 2.0 * (cube_corner - vec3<f32>(0.5));
     let face = (vertex_index >> 3u) & 0x3u;

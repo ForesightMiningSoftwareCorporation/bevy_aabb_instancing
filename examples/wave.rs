@@ -8,7 +8,6 @@ fn main() {
         .add_plugin(VertexPullingRenderPlugin)
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
-        .insert_resource(Msaa { samples: 4 })
         .add_startup_system(setup)
         .run();
 }
@@ -32,7 +31,7 @@ fn setup(mut commands: Commands) {
                     instances.push(Cuboid::new(
                         min,
                         max,
-                        Color::hsl(y % 360.0, 1.0, 0.5).as_rgba_f32(),
+                        Color::hsl(y % 360.0, 1.0, 0.5).as_rgba_u32(),
                     ));
                 }
             }

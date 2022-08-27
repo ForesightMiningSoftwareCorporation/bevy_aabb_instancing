@@ -97,8 +97,7 @@ pub(crate) struct GpuCuboid {
     pub min: Vec3,
     _pad0: f32,
     pub max: Vec3,
-    _pad1: f32,
-    pub color: [f32; 4],
+    pub color: u32,
 }
 
 impl From<&Cuboid> for GpuCuboid {
@@ -107,7 +106,6 @@ impl From<&Cuboid> for GpuCuboid {
             min: cuboid.minimum,
             _pad0: 0.0,
             max: cuboid.maximum,
-            _pad1: 0.0,
             color: cuboid.color_rgba,
         }
     }
