@@ -1,12 +1,10 @@
-use crate::component::*;
-use crate::SmallKeyHashMap;
+use crate::{Cuboid, SmallKeyHashMap};
 
 use bevy::{
     prelude::*,
     render::primitives::Aabb,
-    render::render_resource::{BindGroup, Buffer},
+    render::render_resource::{BindGroup, StorageBuffer},
 };
-use bytemuck::{Pod, Zeroable};
 
 #[derive(Default)]
 pub(crate) struct BufferCache {
@@ -91,29 +89,9 @@ impl BufferCache {
     }
 }
 
-#[derive(Clone, Copy, Debug, Default, Pod, Zeroable)]
-#[repr(C)]
-pub(crate) struct GpuCuboid {
-    pub min: Vec3,
-    _pad0: f32,
-    pub max: Vec3,
-    pub color: u32,
-}
-
-impl From<&Cuboid> for GpuCuboid {
-    fn from(cuboid: &Cuboid) -> Self {
-        Self {
-            min: cuboid.minimum,
-            _pad0: 0.0,
-            max: cuboid.maximum,
-            color: cuboid.color_rgba,
-        }
-    }
-}
-
-#[derive(Clone, Component)]
+#[derive(Component)]
 pub struct GpuCuboidBuffers {
-    pub(crate) _instance_buffer: Buffer,
+    pub(crate) _instance_buffer: StorageBuffer<Vec<Cuboid>>,
     pub(crate) instance_buffer_bind_group: BindGroup,
     pub(crate) transform_index: u32,
     pub(crate) num_cuboids: u32,

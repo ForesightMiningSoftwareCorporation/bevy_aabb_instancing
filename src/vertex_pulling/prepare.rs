@@ -1,22 +1,21 @@
-use super::buffer_cache::{BufferCache, GpuCuboid, GpuCuboidBuffers};
+use super::buffer_cache::{BufferCache, GpuCuboidBuffers};
 use super::draw::ClippingPlanesMeta;
 use super::extract::{CuboidsTransform, GpuClippingPlaneRange, RenderCuboids};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::CuboidsPipeline;
 
+use crate::component::Cuboid;
 use bevy::render::render_resource::{ShaderType, UniformBuffer};
 use bevy::{
     prelude::*,
     render::{
         primitives::Aabb,
         render_resource::{
-            BindGroupDescriptor, BindGroupEntry, BufferInitDescriptor, BufferUsages,
-            DynamicUniformBuffer,
+            BindGroupDescriptor, BindGroupEntry, DynamicUniformBuffer, StorageBuffer,
         },
         renderer::{RenderDevice, RenderQueue},
     },
 };
-use bytemuck::cast_slice;
 
 #[derive(Default, ShaderType)]
 pub(crate) struct GpuClippingPlaneRanges {
@@ -58,7 +57,6 @@ pub(crate) fn prepare_clipping_planes(
 }
 
 pub(crate) fn prepare_cuboids(
-    mut gpu_cuboids_scratch: Local<Vec<GpuCuboid>>,
     mut transform_indices_scratch: Local<Vec<u32>>,
     pipeline: Res<CuboidsPipeline>,
     render_device: Res<RenderDevice>,
@@ -120,14 +118,12 @@ pub(crate) fn prepare_cuboids(
                     );
                 });
 
-                gpu_cuboids_scratch.clear();
-                gpu_cuboids_scratch.extend(new_cuboids.instances.iter().map(GpuCuboid::from));
-                let instance_buffer = create_instance_buffer_span.in_scope(|| {
-                    render_device.create_buffer_with_data(&BufferInitDescriptor {
-                        label: Some("gpu_cuboids_instance_buffer"),
-                        contents: cast_slice(&gpu_cuboids_scratch),
-                        usage: BufferUsages::STORAGE,
-                    })
+                let mut instance_buffer = StorageBuffer::<Vec<Cuboid>>::default();
+                create_instance_buffer_span.in_scope(|| {
+                    instance_buffer
+                        .get_mut()
+                        .extend_from_slice(&new_cuboids.instances);
+                    instance_buffer.write_buffer(&render_device, &render_queue);
                 });
                 let instance_buffer_bind_group = create_bind_group_span.in_scope(|| {
                     render_device.create_bind_group(&BindGroupDescriptor {
@@ -135,7 +131,7 @@ pub(crate) fn prepare_cuboids(
                         layout: &pipeline.cuboids_layout,
                         entries: &[BindGroupEntry {
                             binding: 0,
-                            resource: instance_buffer.as_entire_binding(),
+                            resource: instance_buffer.binding().unwrap(),
                         }],
                     })
                 });

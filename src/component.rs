@@ -3,10 +3,9 @@ use bevy::{
     render::{primitives::Aabb, render_resource::ShaderType},
 };
 use bitvec::boxed::BitBox;
-use bytemuck::{Pod, Zeroable};
 
 /// An axis-aligned box, extending from `minimum` to `maximum`.
-#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+#[derive(Clone, Copy, Debug, ShaderType)]
 #[repr(C)]
 pub struct Cuboid {
     pub minimum: Vec3,

@@ -13,7 +13,6 @@ trace = ["bevy/trace_chrome"]
 [dependencies]
 ahash = "0.7"
 bitvec = "1.0"
-bytemuck = { version = "1.7", features = ["derive"] }
 
 [dependencies.bevy]
 version = "0.8"
