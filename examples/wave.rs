@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_aabb_instancing::{cuboids_aabb, Cuboid, Cuboids, VertexPullingRenderPlugin};
+use bevy_aabb_instancing::{Cuboid, Cuboids, VertexPullingRenderPlugin};
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
@@ -35,10 +35,11 @@ fn setup(mut commands: Commands) {
                     ));
                 }
             }
-            let aabb = cuboids_aabb(&instances);
+            let cuboids = Cuboids::new(instances);
+            let aabb = cuboids.aabb();
             commands
                 .spawn_bundle(SpatialBundle::default())
-                .insert_bundle((Cuboids::new(instances), aabb));
+                .insert_bundle((cuboids, aabb));
         }
     }
 

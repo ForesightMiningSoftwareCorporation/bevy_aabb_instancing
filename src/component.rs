@@ -35,17 +35,17 @@ impl Cuboids {
     pub fn new(instances: Vec<Cuboid>) -> Self {
         Self { instances }
     }
-}
 
-/// Automatically creates an [`Aabb`] that bounds all `instances`.
-pub fn cuboids_aabb(instances: &[Cuboid]) -> Aabb {
-    let mut min = Vec3::splat(f32::MAX);
-    let mut max = Vec3::splat(f32::MIN);
-    for i in instances.iter() {
-        min = min.min(i.minimum);
-        max = max.max(i.maximum);
+    /// Automatically creates an [`Aabb`] that bounds all `instances`.
+    pub fn aabb(&self) -> Aabb {
+        let mut min = Vec3::splat(f32::MAX);
+        let mut max = Vec3::splat(f32::MIN);
+        for i in self.instances.iter() {
+            min = min.min(i.minimum);
+            max = max.max(i.maximum);
+        }
+        Aabb::from_min_max(min, max)
     }
-    Aabb::from_min_max(min, max)
 }
 
 /// Will be rendered.
