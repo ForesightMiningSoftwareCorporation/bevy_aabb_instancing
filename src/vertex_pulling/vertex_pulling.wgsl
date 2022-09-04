@@ -24,6 +24,7 @@ struct ClippingPlaneRanges {
 
 struct Cuboid {
     min: vec3<f32>,
+    mask: u32,
     max: vec3<f32>,
     color: u32,
 };
@@ -62,6 +63,15 @@ struct VertexOutput {
 fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let instance_index = vertex_index >> 5u;
     let cuboid = cuboids.data[instance_index];
+
+    // Check visibility mask.
+    if ((cuboid.mask & 0x01u) != 0u) {
+        // Discard this vertex by sending it to zero. This only works because
+        // we'll be doing this same culling for every vertex in every triangle
+        // in this cuboid.
+        return VertexOutput();
+    }
+
     let cuboid_center = (cuboid.min + cuboid.max) / 2.0;
 
     // Clip any cuboid instance that falls out of the allowed ranges.
@@ -104,6 +114,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     ) / 255.0;
 
     #ifdef OUTLINES
+
+    // TODO: check face edge visibility mask
+
     let centroid_to_corner = 2.0 * (cube_corner - vec3<f32>(0.5));
     let face = (vertex_index >> 3u) & 0x3u;
     if face == 0u {

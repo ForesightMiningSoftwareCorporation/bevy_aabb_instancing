@@ -12,7 +12,6 @@ trace = ["bevy/trace_chrome"]
 
 [dependencies]
 ahash = "0.7"
-bitvec = "1.0"
 
 [dependencies.bevy]
 version = "0.8"
@@ -20,4 +19,5 @@ default-features = false
 features = ["bevy_asset", "bevy_core_pipeline", "bevy_render", "x11"]
 
 [dev-dependencies]
+rand = "0.8"
 smooth-bevy-cameras = { git = "https://github.com/bonsairobo/smooth-bevy-cameras", rev = "a1095b9bc" }

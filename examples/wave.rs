@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use bevy_aabb_instancing::{Cuboid, Cuboids, VertexPullingRenderPlugin};
+use rand::Rng;
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(Msaa { samples: 1 })
-        .add_plugin(VertexPullingRenderPlugin { outlines: false })
+        .add_plugin(VertexPullingRenderPlugin { outlines: true })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
         .add_startup_system(setup)
@@ -14,6 +15,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
+    let mut rng = rand::thread_rng();
     for x_batch in 0..20 {
         for z_batch in 0..20 {
             let mut instances = Vec::with_capacity(10_000);
@@ -28,10 +30,13 @@ fn setup(mut commands: Commands) {
                     let h = 0.01 * d;
                     let min = c - Vec3::new(0.5, h, 0.5);
                     let max = c + Vec3::new(0.5, h, 0.5);
-                    instances.push(Cuboid::new(
+                    let visible = rng.gen_bool(0.3);
+                    instances.push(Cuboid::new_with_visibility_masks(
                         min,
                         max,
                         Color::hsl(d % 360.0, 1.0, 0.5).as_rgba_u32(),
+                        visible,
+                        [true; 6],
                     ));
                 }
             }

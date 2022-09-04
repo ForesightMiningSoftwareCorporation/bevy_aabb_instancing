@@ -64,7 +64,7 @@ pub(crate) fn prepare_cuboids(
     mut buffer_cache: ResMut<BufferCache>,
     mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
     mut index_buffer: ResMut<CuboidsIndexBuffer>,
-    render_cuboids: Query<(Entity, &RenderCuboids, &CuboidsTransform, &Aabb)>,
+    mut render_cuboids: Query<(Entity, &mut RenderCuboids, &CuboidsTransform, &Aabb)>,
 ) {
     let create_instance_buffer_span =
         bevy::log::info_span!("prepare_cuboids::create_instance_buffer");
@@ -99,10 +99,11 @@ pub(crate) fn prepare_cuboids(
         }))
     });
 
-    for ((entity, cuboids, _, aabb), &transform_index) in
-        render_cuboids.iter().zip(transform_indices_scratch.iter())
+    for ((entity, mut cuboids, _, aabb), &transform_index) in render_cuboids
+        .iter_mut()
+        .zip(transform_indices_scratch.iter())
     {
-        match cuboids {
+        match &mut *cuboids {
             RenderCuboids::UpdateCuboids {
                 cuboids: new_cuboids,
                 is_visible,
@@ -120,9 +121,10 @@ pub(crate) fn prepare_cuboids(
 
                 let mut instance_buffer = StorageBuffer::<Vec<Cuboid>>::default();
                 create_instance_buffer_span.in_scope(|| {
-                    instance_buffer
-                        .get_mut()
-                        .extend_from_slice(&new_cuboids.instances);
+                    let _ = std::mem::replace(
+                        instance_buffer.get_mut(),
+                        std::mem::take(&mut new_cuboids.instances),
+                    );
                     instance_buffer.write_buffer(&render_device, &render_queue);
                 });
                 let instance_buffer_bind_group = create_bind_group_span.in_scope(|| {

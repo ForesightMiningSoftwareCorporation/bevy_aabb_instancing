@@ -37,29 +37,16 @@ pub(crate) fn extract_cuboids(
             &Cuboids,
             &GlobalTransform,
             &Aabb,
-            Option<&CuboidsMask>,
             Option<&ComputedVisibility>,
-            Or<(
-                Added<Cuboids>,
-                Changed<Cuboids>,
-                Added<CuboidsMask>,
-                Changed<CuboidsMask>,
-            )>,
+            Or<(Added<Cuboids>, Changed<Cuboids>)>,
         )>,
     >,
     mut buffer_cache: ResMut<BufferCache>,
 ) {
     render_cuboids_scratch.clear();
 
-    for (
-        entity,
-        cuboids,
-        transform,
-        aabb,
-        maybe_mask,
-        maybe_visibility,
-        instance_buffer_needs_update,
-    ) in cuboids.iter()
+    for (entity, cuboids, transform, aabb, maybe_visibility, instance_buffer_needs_update) in
+        cuboids.iter()
     {
         // Filter all entities that don't have any enabled instances.
         // If an entity went from some to none cuboids, then it will get
@@ -67,34 +54,15 @@ pub(crate) fn extract_cuboids(
         if cuboids.instances.is_empty() {
             continue;
         }
-        if let Some(mask) = maybe_mask {
-            assert_eq!(mask.bitmask.len(), cuboids.instances.len());
-            if mask.bitmask.count_zeros() == 0 {
-                continue;
-            }
-        }
 
         let is_visible = maybe_visibility
             .map(ComputedVisibility::is_visible)
             .unwrap_or(true);
 
         let render_cuboids = if instance_buffer_needs_update {
-            if let Some(mask) = maybe_mask {
-                RenderCuboids::UpdateCuboids {
-                    // TODO: upload the mask to the GPU and cull there instead of replacing the instance buffer
-                    cuboids: Cuboids::new(
-                        mask.bitmask
-                            .iter_zeros()
-                            .map(|index| cuboids.instances[index])
-                            .collect(),
-                    ),
-                    is_visible,
-                }
-            } else {
-                RenderCuboids::UpdateCuboids {
-                    cuboids: cuboids.clone(),
-                    is_visible,
-                }
+            RenderCuboids::UpdateCuboids {
+                cuboids: cuboids.clone(),
+                is_visible,
             }
             // Buffer cache will get filled in RenderState::Prepare.
         } else {
