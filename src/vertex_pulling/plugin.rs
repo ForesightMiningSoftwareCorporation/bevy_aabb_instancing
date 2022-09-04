@@ -2,21 +2,16 @@ use super::buffer_cache::BufferCache;
 use super::draw::{ClippingPlanesMeta, DrawCuboids, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids, CuboidsTransform};
 use super::index_buffer::CuboidsIndexBuffer;
-use super::pass_node::{self, CuboidsPassNode};
 use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
 use super::prepare::{prepare_clipping_planes, prepare_cuboids, GpuClippingPlaneRanges};
 use super::queue::{queue_cuboids, queue_cuboids_view_bind_group};
 
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
-use bevy::{
-    core_pipeline::core_3d,
-    render::{
-        render_graph::RenderGraph,
-        render_phase::AddRenderCommand,
-        render_resource::{DynamicUniformBuffer, UniformBuffer},
-        RenderApp, RenderStage,
-    },
+use bevy::render::{
+    render_phase::AddRenderCommand,
+    render_resource::{DynamicUniformBuffer, UniformBuffer},
+    RenderApp, RenderStage,
 };
 
 /// Renders the [`Cuboids`](crate::Cuboids) component using the "vertex pulling" technique.
@@ -59,21 +54,5 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_system_to_stage(RenderStage::Prepare, prepare_clipping_planes)
             .add_system_to_stage(RenderStage::Queue, queue_cuboids_view_bind_group)
             .add_system_to_stage(RenderStage::Queue, queue_cuboids);
-
-        let cuboids_pass_node = CuboidsPassNode::new(&mut render_app.world);
-        let mut graph = render_app.world.resource_mut::<RenderGraph>();
-        let draw_3d_graph = graph.get_sub_graph_mut(core_3d::graph::NAME).unwrap();
-        draw_3d_graph.add_node(pass_node::CUBOIDS_PASS, cuboids_pass_node);
-        draw_3d_graph
-            .add_node_edge(core_3d::graph::node::MAIN_PASS, pass_node::CUBOIDS_PASS)
-            .unwrap();
-        draw_3d_graph
-            .add_slot_edge(
-                draw_3d_graph.input_node().unwrap().id,
-                core_3d::graph::input::VIEW_ENTITY,
-                pass_node::CUBOIDS_PASS,
-                CuboidsPassNode::IN_VIEW,
-            )
-            .unwrap();
     }
 }

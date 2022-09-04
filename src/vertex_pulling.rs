@@ -4,7 +4,6 @@ mod buffer_cache;
 mod draw;
 mod extract;
 mod index_buffer;
-mod pass_node;
 mod pipeline;
 mod prepare;
 mod queue;
