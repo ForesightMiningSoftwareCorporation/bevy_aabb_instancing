@@ -10,9 +10,9 @@ pub struct Cuboid {
     pub minimum: Vec3,
     /// A bitmask:
     ///
-    /// 0x000000FF = 0 for visible or 1 for invisible
-    /// 0x0000FF00 = 0b00XYZxyz edge visibility mask where X,Y,Z are the positive cube faces and x,y,z are the negative cube faces
-    /// 0xFFFF0000 = unused
+    /// - 0x000000FF = 0 for visible or 1 for invisible
+    /// - 0x0000FF00 = 0b00XYZxyz edge visibility mask where X,Y,Z are the positive cube faces and x,y,z are the negative cube faces
+    /// - 0xFFFF0000 = unused
     pub mask: u32,
     pub maximum: Vec3,
     /// Encoded from `Color::as_rgba_u32`
@@ -57,7 +57,7 @@ impl Cuboid {
 /// The set of cuboids to be extracted for rendering.
 #[derive(Clone, Component, Debug, Default, ShaderType)]
 pub struct Cuboids {
-    /// Instances to be rendered. These can be masked on/off by creating an optional [`CuboidsMask`] component.
+    /// Instances to be rendered.
     #[size(runtime)]
     pub instances: Vec<Cuboid>,
 }
@@ -78,12 +78,6 @@ impl Cuboids {
         Aabb::from_min_max(min, max)
     }
 }
-
-/// Will be rendered.
-pub const VISIBLE: bool = false;
-
-/// Won't be rendered.
-pub const INVISIBLE: bool = true;
 
 /// The range of signed distances from the plane that don't get clipped.
 #[derive(Clone, Component, Default, ShaderType)]
