@@ -1,5 +1,5 @@
 use super::buffer_cache::{BufferCache, GpuCuboidBuffers};
-use super::draw::ClippingPlanesMeta;
+use super::draw::{ClippingPlanesMeta, TransformsMeta};
 use super::extract::{CuboidsTransform, GpuClippingPlaneRange, RenderCuboids};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::CuboidsPipeline;
@@ -62,6 +62,7 @@ pub(crate) fn prepare_cuboids(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     mut buffer_cache: ResMut<BufferCache>,
+    mut transforms_meta: ResMut<TransformsMeta>,
     mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
     mut index_buffer: ResMut<CuboidsIndexBuffer>,
     mut render_cuboids: Query<(Entity, &mut RenderCuboids, &CuboidsTransform, &Aabb)>,
@@ -88,7 +89,7 @@ pub(crate) fn prepare_cuboids(
         assert!(transform_uniforms.is_empty());
         return;
     };
-    buffer_cache.transform_buffer_bind_group = create_bind_group_span.in_scope(|| {
+    transforms_meta.transform_buffer_bind_group = create_bind_group_span.in_scope(|| {
         Some(render_device.create_bind_group(&BindGroupDescriptor {
             label: Some("gpu_cuboids_transforms_bind_group"),
             layout: &pipeline.transforms_layout,

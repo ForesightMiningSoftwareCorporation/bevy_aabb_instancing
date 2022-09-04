@@ -1,5 +1,5 @@
 use super::buffer_cache::BufferCache;
-use super::draw::{ClippingPlanesMeta, DrawCuboids, ViewMeta};
+use super::draw::{ClippingPlanesMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids, CuboidsTransform};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
@@ -45,6 +45,7 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<BufferCache>()
             .init_resource::<DynamicUniformBuffer<CuboidsTransform>>()
             .init_resource::<UniformBuffer<GpuClippingPlaneRanges>>()
+            .init_resource::<TransformsMeta>()
             .init_resource::<ViewMeta>()
             .init_resource::<ClippingPlanesMeta>()
             .insert_resource(CuboidsIndexBuffer::new())

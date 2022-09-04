@@ -106,23 +106,32 @@ impl<const I: usize> EntityRenderCommand for SetClippingPlanesBindGroup<I> {
     }
 }
 
+#[derive(Default)]
+pub struct TransformsMeta {
+    pub transform_buffer_bind_group: Option<BindGroup>,
+}
+
 pub(crate) struct SetGpuTransformBufferBindGroup<const I: usize>;
 
 impl<const I: usize> EntityRenderCommand for SetGpuTransformBufferBindGroup<I> {
-    type Param = SRes<BufferCache>;
+    type Param = (SRes<BufferCache>, SRes<TransformsMeta>);
 
     #[inline]
     fn render<'w>(
         _view: Entity,
         item: Entity,
-        buffer_cache: SystemParamItem<'w, '_, Self::Param>,
+        (buffer_cache, transforms_meta): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let buffer_cache = buffer_cache.into_inner();
+        let transforms_meta = transforms_meta.into_inner();
         let entry = buffer_cache.get(item).unwrap();
         pass.set_bind_group(
             I,
-            buffer_cache.transform_buffer_bind_group().unwrap(),
+            transforms_meta
+                .transform_buffer_bind_group
+                .as_ref()
+                .unwrap(),
             &[entry.buffers().transform_index],
         );
         RenderCommandResult::Success

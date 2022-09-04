@@ -9,8 +9,6 @@ use bevy::{
 #[derive(Default)]
 pub(crate) struct BufferCache {
     entries: SmallKeyHashMap<Entity, BufferCacheEntry>,
-    // TODO: move into separate TransformMeta resource?
-    pub transform_buffer_bind_group: Option<BindGroup>,
 }
 
 pub struct BufferCacheEntry {
@@ -51,10 +49,6 @@ impl BufferCacheEntry {
 }
 
 impl BufferCache {
-    pub fn transform_buffer_bind_group(&self) -> Option<&BindGroup> {
-        self.transform_buffer_bind_group.as_ref()
-    }
-
     pub fn get(&self, entity: Entity) -> Option<&BufferCacheEntry> {
         self.entries.get(&entity)
     }
