@@ -114,9 +114,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     ) / 255.0;
 
     // This depth jittering avoids Z-fighting when cuboids have overlapping faces.
-    let jitter_eps = 0.000000001;
+    let jitter_eps = 0.000004;
     let jitter_int = (cuboid.meta_bits >> 8u) & 0xFFu;
-    out.clip_position.z += (f32(jitter_int) * jitter_eps) * out.clip_position.w;
+    out.clip_position.z *= 1.0 + f32(jitter_int) * jitter_eps;
 
     #ifdef OUTLINES
 

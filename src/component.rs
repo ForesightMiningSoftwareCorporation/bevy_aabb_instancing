@@ -10,9 +10,11 @@ pub struct Cuboid {
     pub minimum: Vec3,
     /// Metadata encoded in 32 bits:
     ///
-    /// - 0x000000FF = 0 for visible or 1 for invisible
-    /// - 0x0000FF00 = depth jitter (u8)
-    /// - 0xFFFF0000 = unused
+    /// - `0x000000FF` = 0 for visible or 1 for invisible
+    /// - `0x0000FF00` = depth bias (u8)
+    ///   - Adjusts the depth of each cuboid vertex by `bias * eps` where `eps = 4e-6`.
+    ///     This can be used with random biases to avoid Z-fighting.
+    /// - `0xFFFF0000` = unused
     pub meta_bits: u32,
     pub maximum: Vec3,
     /// Encoded from `Color::as_rgba_u32`
