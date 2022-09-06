@@ -113,10 +113,10 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
         f32(cuboid.color >> 24u)
     ) / 255.0;
 
-    // This depth jittering avoids Z-fighting when cuboids have overlapping faces.
-    let jitter_eps = 0.000004;
-    let jitter_int = (cuboid.meta_bits >> 8u) & 0xFFu;
-    out.clip_position.z *= 1.0 + f32(jitter_int) * jitter_eps;
+    // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
+    let depth_bias_eps = 0.000004;
+    let depth_bias_int = (cuboid.meta_bits >> 8u) & 0xFFu;
+    out.clip_position.z *= 1.0 + f32(depth_bias_int) * depth_bias_eps;
 
     #ifdef OUTLINES
 

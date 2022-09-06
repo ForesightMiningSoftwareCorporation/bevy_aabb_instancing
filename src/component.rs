@@ -27,11 +27,11 @@ impl Cuboid {
         maximum: Vec3,
         color_rgba: u32,
         visible: bool,
-        depth_jitter: u8,
+        depth_bias: u8,
     ) -> Self {
         assert_eq!(std::mem::size_of::<Cuboid>(), 32);
         let mut meta_bits = (!visible) as u32;
-        meta_bits |= (depth_jitter as u32) << 8;
+        meta_bits |= (depth_bias as u32) << 8;
         Self {
             minimum,
             meta_bits,
