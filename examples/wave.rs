@@ -31,12 +31,13 @@ fn setup(mut commands: Commands) {
                     let min = c - Vec3::new(0.5, h, 0.5);
                     let max = c + Vec3::new(0.5, h, 0.5);
                     let visible = rng.gen_bool(0.3);
-                    instances.push(Cuboid::new_with_visibility_masks(
+                    let depth_jitter = rng.gen();
+                    instances.push(Cuboid::new(
                         min,
                         max,
                         Color::hsl(d % 360.0, 1.0, 0.5).as_rgba_u32(),
                         visible,
-                        [true; 6],
+                        depth_jitter,
                     ));
                 }
             }

@@ -8,45 +8,31 @@ use bevy::{
 #[repr(C)]
 pub struct Cuboid {
     pub minimum: Vec3,
-    /// A bitmask:
+    /// Metadata encoded in 32 bits:
     ///
     /// - 0x000000FF = 0 for visible or 1 for invisible
-    /// - 0xFFFFFF00 = unused
-    pub mask: u32,
+    /// - 0x0000FF00 = depth jitter (u8)
+    /// - 0xFFFF0000 = unused
+    pub meta_bits: u32,
     pub maximum: Vec3,
     /// Encoded from `Color::as_rgba_u32`
     pub color_rgba: u32,
 }
 
 impl Cuboid {
-    pub fn new(minimum: Vec3, maximum: Vec3, color_rgba: u32) -> Self {
-        assert_eq!(std::mem::size_of::<Cuboid>(), 32);
-        Self {
-            minimum,
-            mask: 0,
-            maximum,
-            color_rgba,
-        }
-    }
-
-    pub fn new_with_visibility_masks(
+    pub fn new(
         minimum: Vec3,
         maximum: Vec3,
         color_rgba: u32,
         visible: bool,
-        faces_visible: [bool; 6],
+        depth_jitter: u8,
     ) -> Self {
         assert_eq!(std::mem::size_of::<Cuboid>(), 32);
-        let mut face_mask = 0u8;
-        for (i, is_visible) in faces_visible.iter().enumerate() {
-            if !is_visible {
-                face_mask |= 1 << i;
-            }
-        }
-        let mask = u32::from_le_bytes([!visible as u8, face_mask, 0, 0]);
+        let mut meta_bits = (!visible) as u32;
+        meta_bits |= (depth_jitter as u32) << 8;
         Self {
             minimum,
-            mask,
+            meta_bits,
             maximum,
             color_rgba,
         }

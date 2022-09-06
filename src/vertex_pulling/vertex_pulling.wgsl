@@ -24,7 +24,7 @@ struct ClippingPlaneRanges {
 
 struct Cuboid {
     min: vec3<f32>,
-    mask: u32,
+    meta_bits: u32,
     max: vec3<f32>,
     color: u32,
 };
@@ -65,7 +65,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let cuboid = cuboids.data[instance_index];
 
     // Check visibility mask.
-    if ((cuboid.mask & 0x01u) != 0u) {
+    if ((cuboid.meta_bits & 0x01u) != 0u) {
         // Discard this vertex by sending it to zero. This only works because
         // we'll be doing this same culling for every vertex in every triangle
         // in this cuboid.
@@ -113,6 +113,11 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
         f32(cuboid.color >> 24u)
     ) / 255.0;
 
+    // This depth jittering avoids Z-fighting when cuboids have overlapping faces.
+    let jitter_eps = 0.000000001;
+    let jitter_int = (cuboid.meta_bits >> 8u) & 0xFFu;
+    out.clip_position.z += (f32(jitter_int) * jitter_eps) * out.clip_position.w;
+
     #ifdef OUTLINES
 
     let centroid_to_corner = 2.0 * (cube_corner - vec3<f32>(0.5));
@@ -124,6 +129,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     } else {
         out.face_center_to_corner = centroid_to_corner.yz;
     }
+
     #endif
 
     return out;
@@ -138,11 +144,17 @@ struct FragmentInput {
     #endif
 };
 
+struct FragmentOutput {
+    @location(0) color: vec4<f32>,
+}
+
 // Constant-pixel-width edges:
 // https://catlikecoding.com/unity/tutorials/advanced-rendering/flat-and-wireframe-shading/
 
 @fragment
-fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
+fn fragment(in: FragmentInput) -> FragmentOutput {
+    var out: FragmentOutput;
+
     #ifdef OUTLINES
 
     let frag_to_edge = vec2<f32>(1.0) - abs(in.face_center_to_fragment);
@@ -150,11 +162,13 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
     let step = smoothstep(vec2<f32>(0.0), deltas, frag_to_edge);
     let min_step = min(step.x, step.y);
     let edge_factor = mix(0.1, 1.0, min_step);
-    return edge_factor * in.color;
+    out.color = edge_factor * in.color;
 
     #else
 
-    return in.color;
+    out.color = in.color;
 
     #endif
+
+    return out;
 }
