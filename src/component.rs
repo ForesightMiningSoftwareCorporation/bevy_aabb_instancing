@@ -39,8 +39,8 @@ impl Cuboid {
     ) -> Self {
         assert_eq!(std::mem::size_of::<Cuboid>(), 32);
         let mut face_mask = 0u8;
-        for i in 0..6 {
-            if !faces_visible[i] {
+        for (i, is_visible) in faces_visible.iter().enumerate() {
+            if !is_visible {
                 face_mask |= 1 << i;
             }
         }

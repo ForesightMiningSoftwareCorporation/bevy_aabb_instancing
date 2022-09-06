@@ -31,7 +31,7 @@ impl Plugin for VertexPullingRenderPlugin {
         let render_app = app.sub_app_mut(RenderApp);
 
         if let Some(msaa) = maybe_msaa {
-            render_app.insert_resource(msaa.clone());
+            render_app.insert_resource(msaa);
         }
         let mut shader_defs = CuboidsShaderDefs::default();
         if self.outlines {

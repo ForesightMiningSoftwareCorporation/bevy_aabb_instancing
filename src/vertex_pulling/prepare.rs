@@ -33,7 +33,7 @@ pub(crate) fn prepare_clipping_planes(
 ) {
     let mut iter = extracted_clipping_planes.iter();
     let mut gpu_planes = GpuClippingPlaneRanges::default();
-    while let Some(plane) = iter.next() {
+    for plane in iter.by_ref() {
         gpu_planes.ranges[gpu_planes.num_ranges as usize] = plane.clone();
         gpu_planes.num_ranges += 1;
         if gpu_planes.num_ranges == 3 {
@@ -56,6 +56,7 @@ pub(crate) fn prepare_clipping_planes(
     }));
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn prepare_cuboids(
     mut transform_indices_scratch: Local<Vec<u32>>,
     pipeline: Res<CuboidsPipeline>,

@@ -26,6 +26,7 @@ impl CuboidsIndexBuffer {
         /// In addition to encoding the 3-bit cube corner index, we add 2 bits
         /// to indicate which of the 3 faces is being rendered.
         #[rustfmt::skip]
+        #[allow(clippy::unusual_byte_groupings)]
         const CUBE_INDICES: [u32; NUM_CUBE_INDICES_USIZE] = [
             0b00_000, 0b00_010, 0b00_001, 0b00_010, 0b00_011, 0b00_001, // face XY (0)
             0b01_101, 0b01_100, 0b01_001, 0b01_001, 0b01_100, 0b01_000, // face XZ (1)

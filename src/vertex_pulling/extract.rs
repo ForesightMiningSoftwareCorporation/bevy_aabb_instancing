@@ -28,6 +28,7 @@ pub(crate) enum RenderCuboids {
     UseCachedCuboids,
 }
 
+#[allow(clippy::type_complexity)]
 pub(crate) fn extract_cuboids(
     mut commands: Commands,
     mut render_cuboids_scratch: Local<Vec<(Entity, (RenderCuboids, CuboidsTransform, Aabb))>>,
