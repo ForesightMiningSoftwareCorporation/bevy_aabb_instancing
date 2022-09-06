@@ -154,6 +154,7 @@ struct FragmentOutput {
 @fragment
 fn fragment(in: FragmentInput) -> FragmentOutput {
     var out: FragmentOutput;
+    out.color = in.color;
 
     #ifdef OUTLINES
 
@@ -162,11 +163,7 @@ fn fragment(in: FragmentInput) -> FragmentOutput {
     let step = smoothstep(vec2<f32>(0.0), deltas, frag_to_edge);
     let min_step = min(step.x, step.y);
     let edge_factor = mix(0.1, 1.0, min_step);
-    out.color = edge_factor * in.color;
-
-    #else
-
-    out.color = in.color;
+    out.color *= edge_factor;
 
     #endif
 
