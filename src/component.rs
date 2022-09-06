@@ -11,8 +11,7 @@ pub struct Cuboid {
     /// A bitmask:
     ///
     /// - 0x000000FF = 0 for visible or 1 for invisible
-    /// - 0x0000FF00 = 0b00XYZxyz edge visibility mask where X,Y,Z are the positive cube faces and x,y,z are the negative cube faces
-    /// - 0xFFFF0000 = unused
+    /// - 0xFFFFFF00 = unused
     pub mask: u32,
     pub maximum: Vec3,
     /// Encoded from `Color::as_rgba_u32`
