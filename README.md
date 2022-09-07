@@ -18,6 +18,7 @@ cargo run --example wave --release
 - vertex pulling renderer
 - cuboid outlining
 - clipping planes
+- depth jitter to counteract z-fighting of coplanar cuboids
 
 ## License
 
