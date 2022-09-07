@@ -12,8 +12,9 @@ pub struct Cuboid {
     ///
     /// - `0x000000FF` = 0 for visible or 1 for invisible
     /// - `0x0000FF00` = depth bias (u8)
-    ///   - Adjusts the depth of each cuboid vertex by `bias * eps` where `eps = 4e-6`.
-    ///     This can be used with random biases to avoid Z-fighting.
+    ///   - Multiplies the depth of each cuboid vertex by `1 + bias * eps` where
+    ///     `eps = 4e-6`. This can be used with random biases to avoid
+    ///     Z-fighting.
     /// - `0xFFFF0000` = unused
     pub meta_bits: u32,
     pub maximum: Vec3,
