@@ -74,22 +74,27 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 
     let cuboid_center = (cuboid.min + cuboid.max) / 2.0;
 
-    // Clip any cuboid instance that falls out of the allowed ranges.
-    for (var i = 0u; i < clipping_planes.num_ranges; i++) {
-        let range = clipping_planes.ranges[i];
-        let sdist_to_plane = dot(cuboid_center - range.origin, range.unit_normal);
-        if sdist_to_plane < range.min_sdist || sdist_to_plane > range.max_sdist {
-            // Discard this vertex by sending it to zero. This only works
-            // because we'll be doing this same culling for every vertex in
-            // every triangle in this cuboid.
-            return VertexOutput();
+    if (clipping_planes.num_ranges > 0u) {
+        let tfm_cuboid_center = transform.m * vec4<f32>(cuboid_center, 1.0);
+        let tfm_cuboid_center = tfm_cuboid_center.xyz / tfm_cuboid_center.w;
+
+        // Clip any cuboid instance that falls out of the allowed ranges.
+        for (var i = 0u; i < clipping_planes.num_ranges; i++) {
+            let range = clipping_planes.ranges[i];
+            let sdist_to_plane = dot(tfm_cuboid_center - range.origin, range.unit_normal);
+            if sdist_to_plane < range.min_sdist || sdist_to_plane > range.max_sdist {
+                // Discard this vertex by sending it to zero. This only works
+                // because we'll be doing this same culling for every vertex in
+                // every triangle in this cuboid.
+                return VertexOutput();
+            }
         }
     }
 
     // Need to do this calculation in cuboid (model) space so our offsets are grid-aligned.
-    var camera_in_cuboid_space = transform.m_inv * vec4<f32>(view.world_position, 1.0);
-    camera_in_cuboid_space = camera_in_cuboid_space / camera_in_cuboid_space.w;
-    let offset = camera_in_cuboid_space.xyz - cuboid_center;
+    let camera_in_cuboid_space = transform.m_inv * vec4<f32>(view.world_position, 1.0);
+    let camera_in_cuboid_space = camera_in_cuboid_space.xyz / camera_in_cuboid_space.w;
+    let offset = camera_in_cuboid_space - cuboid_center;
     let mirror_mask =
         u32(offset.x > 0.0) |
         u32(offset.y > 0.0) << 1u |
