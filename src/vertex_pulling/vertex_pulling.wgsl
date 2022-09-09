@@ -163,11 +163,11 @@ fn fragment(in: FragmentInput) -> FragmentOutput {
 
     #ifdef OUTLINES
 
-    let frag_to_edge = vec2<f32>(1.0) - abs(in.face_center_to_fragment);
-    let deltas = fwidth(frag_to_edge);
-    let step = smoothstep(vec2<f32>(0.0), deltas, frag_to_edge);
+    let dist_to_edge = vec2<f32>(1.0) - abs(in.face_center_to_fragment);
+    let screen_derivative = fwidth(in.face_center_to_fragment);
+    let step = smoothstep(vec2<f32>(0.0), 2.0 * screen_derivative, dist_to_edge);
     let min_step = min(step.x, step.y);
-    let edge_factor = mix(0.1, 1.0, min_step);
+    let edge_factor = mix(0.5, 1.0, min_step);
     out.color *= edge_factor;
 
     #endif
