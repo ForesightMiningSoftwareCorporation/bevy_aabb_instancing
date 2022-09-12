@@ -40,6 +40,16 @@ impl Cuboid {
             color_rgba,
         }
     }
+
+    #[inline]
+    pub fn make_visible(&mut self) {
+        self.meta_bits &= !1;
+    }
+
+    #[inline]
+    pub fn make_invisible(&mut self) {
+        self.meta_bits |= 1;
+    }
 }
 
 /// The set of cuboids to be extracted for rendering.
