@@ -1,14 +1,15 @@
-use crate::{Cuboid, SmallKeyHashMap};
+use crate::Cuboid;
 
 use bevy::{
     prelude::*,
     render::primitives::Aabb,
     render::render_resource::{BindGroup, StorageBuffer},
+    utils::HashMap,
 };
 
 #[derive(Default)]
 pub(crate) struct BufferCache {
-    entries: SmallKeyHashMap<Entity, BufferCacheEntry>,
+    entries: HashMap<Entity, BufferCacheEntry>,
 }
 
 pub struct BufferCacheEntry {

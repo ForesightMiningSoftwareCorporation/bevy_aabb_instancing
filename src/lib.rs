@@ -39,5 +39,3 @@ mod vertex_pulling;
 pub use clipping_planes::*;
 pub use cuboids::*;
 pub use vertex_pulling::plugin::*;
-
-type SmallKeyHashMap<K, V> = ahash::AHashMap<K, V>;
