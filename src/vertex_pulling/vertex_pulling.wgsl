@@ -1,3 +1,26 @@
+fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32> {
+    // https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB
+    let chroma = (1.0 - abs(2.0 * lightness - 1.0)) * saturation;
+    let hue_prime = hue / 60.0;
+    let largest_component = chroma * (1.0 - abs(hue_prime % 2.0 - 1.0));
+    var rgb_temp: vec3<f32>;
+    if (hue_prime < 1.0) {
+        rgb_temp = vec3<f32>(chroma, largest_component, 0.0);
+    } else if (hue_prime < 2.0) {
+        rgb_temp = vec3<f32>(largest_component, chroma, 0.0);
+    } else if (hue_prime < 3.0) {
+        rgb_temp = vec3<f32>(0.0, chroma, largest_component);
+    } else if (hue_prime < 4.0) {
+        rgb_temp = vec3<f32>(0.0, largest_component, chroma);
+    } else if (hue_prime < 5.0) {
+        rgb_temp = vec3<f32>(largest_component, 0.0, chroma);
+    } else {
+        rgb_temp = vec3<f32>(chroma, 0.0, largest_component);
+    }
+    let lightness_match = lightness - chroma / 2.0;
+    return rgb_temp + lightness_match;
+}
+
 struct View {
     view_proj: mat4x4<f32>,
     inverse_view_proj: mat4x4<f32>,
@@ -8,14 +31,26 @@ struct View {
     world_position: vec3<f32>,
     width: f32,
     height: f32,
-};
+}
+
+struct ScalarHueColorOptions {
+    min_visible_value: f32,
+    max_visible_value: f32,
+    max_blue_value: f32,
+    min_red_value: f32,
+}
+
+struct ColorOptions {
+    scalar_hue: ScalarHueColorOptions,
+    color_mode: u32,
+}
 
 struct ClippingPlaneRange {
     origin: vec3<f32>,
     unit_normal: vec3<f32>,
     min_sdist: f32,
     max_sdist: f32,
-};
+}
 
 struct ClippingPlaneRanges {
     ranges: array<ClippingPlaneRange, 3>,
@@ -27,21 +62,24 @@ struct Cuboid {
     meta_bits: u32,
     max: vec3<f32>,
     color: u32,
-};
+}
 
 struct Cuboids {
     data: array<Cuboid>,
-};
+}
 
 struct Transform {
     m: mat4x4<f32>,
     m_inv: mat4x4<f32>,
-};
+}
 
 @group(0) @binding(0)
 var<uniform> view: View;
 
 @group(1) @binding(0)
+var<uniform> color_options: ColorOptions;
+
+@group(1) @binding(1)
 var<uniform> clipping_planes: ClippingPlaneRanges;
 
 @group(2) @binding(0)
@@ -57,19 +95,46 @@ struct VertexOutput {
     #ifdef OUTLINES
     @location(1) face_center_to_corner: vec2<f32>,
     #endif
-};
+}
 
 @vertex
 fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
+    var out: VertexOutput;
+
     let instance_index = vertex_index >> 5u;
     let cuboid = cuboids.data[instance_index];
 
     // Check visibility mask.
     if ((cuboid.meta_bits & 0x01u) != 0u) {
-        // Discard this vertex by sending it to zero. This only works because
-        // we'll be doing this same culling for every vertex in every triangle
-        // in this cuboid.
+        // DISCARD CUBOID
         return VertexOutput();
+    }
+
+    if (color_options.color_mode == 1u) {
+        // SCALAR HUE
+        let scalar = bitcast<f32>(cuboid.color);
+        if (scalar < color_options.scalar_hue.min_visible_value ||
+            scalar > color_options.scalar_hue.max_visible_value)
+        {
+            // DISCARD CUBOID
+            return VertexOutput();
+        }
+
+        // HSL
+        let b = color_options.scalar_hue.max_blue_value;
+        let r = color_options.scalar_hue.min_red_value;
+        let hue = 360.0 * (clamp(scalar, b, r) - b) / (r - b);
+        let saturation = 1.0;
+        let lightness = 0.5;
+        out.color = vec4<f32>(hsl_to_nonlinear_srgb(hue, saturation, lightness), 1.0);
+    } else {
+        // RGB
+        out.color = vec4<f32>(
+            f32(cuboid.color & 0xFFu),
+            f32((cuboid.color >> 8u) & 0xFFu),
+            f32((cuboid.color >> 16u) & 0xFFu),
+            255.0
+        ) / 255.0;
     }
 
     let cuboid_center = (cuboid.min + cuboid.max) / 2.0;
@@ -83,9 +148,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
             let range = clipping_planes.ranges[i];
             let sdist_to_plane = dot(tfm_cuboid_center - range.origin, range.unit_normal);
             if sdist_to_plane < range.min_sdist || sdist_to_plane > range.max_sdist {
-                // Discard this vertex by sending it to zero. This only works
-                // because we'll be doing this same culling for every vertex in
-                // every triangle in this cuboid.
+                // DISCARD CUBOID
                 return VertexOutput();
             }
         }
@@ -109,14 +172,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let model_position = cube_corner * cuboid.max + (1.0 - cube_corner) * cuboid.min;
     let world_position = transform.m * vec4<f32>(model_position, 1.0);
 
-    var out: VertexOutput;
     out.clip_position = view.view_proj * world_position;
-    out.color = vec4<f32>(
-        f32(cuboid.color & 0xFFu),
-        f32((cuboid.color >> 8u) & 0xFFu),
-        f32((cuboid.color >> 16u) & 0xFFu),
-        f32(cuboid.color >> 24u)
-    ) / 255.0;
 
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
     let depth_bias_eps = 0.000004;
@@ -147,7 +203,7 @@ struct FragmentInput {
     // "normalized face coordinates" in [-1, 1]^2
     @location(1) face_center_to_fragment: vec2<f32>,
     #endif
-};
+}
 
 struct FragmentOutput {
     @location(0) color: vec4<f32>,

@@ -1,7 +1,12 @@
 use super::cuboid_cache::CuboidBufferCache;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
+use crate::ColorOptions;
+use crate::ColorOptionsId;
+use crate::ColorOptionsMap;
+use crate::ColorOptionsUniformIndex;
 
+use bevy::render::render_resource::DynamicUniformBuffer;
 use bevy::{
     prelude::*,
     render::{primitives::Aabb, Extract},
@@ -16,23 +21,51 @@ pub(crate) enum RenderCuboids {
 #[allow(clippy::type_complexity)]
 pub(crate) fn extract_cuboids(
     mut commands: Commands,
-    mut render_cuboids_scratch: Local<Vec<(Entity, (RenderCuboids, CuboidsTransform, Aabb))>>,
+    mut render_cuboids_scratch: Local<
+        Vec<(
+            Entity,
+            (
+                RenderCuboids,
+                CuboidsTransform,
+                Aabb,
+                ColorOptionsUniformIndex,
+            ),
+        )>,
+    >,
     cuboids: Extract<
         Query<(
             Entity,
             &Cuboids,
             &GlobalTransform,
             &Aabb,
+            &ColorOptionsId,
             Option<&ComputedVisibility>,
             Or<(Added<Cuboids>, Changed<Cuboids>)>,
         )>,
     >,
+    color_options: Extract<Res<ColorOptionsMap>>,
+    mut color_options_uniforms: ResMut<DynamicUniformBuffer<ColorOptions>>,
     mut buffer_cache: ResMut<CuboidBufferCache>,
 ) {
     render_cuboids_scratch.clear();
 
-    for (entity, cuboids, transform, aabb, maybe_visibility, instance_buffer_needs_update) in
-        cuboids.iter()
+    if color_options.is_empty() {
+        warn!("Cannot draw Cuboids with empty ColorOptionsMap");
+        return;
+    }
+
+    // First extract color options so we can assign dynamic uniform indices to cuboids.
+    let color_options_indices = color_options.write_uniforms(&mut color_options_uniforms);
+
+    for (
+        entity,
+        cuboids,
+        transform,
+        aabb,
+        color_options_id,
+        maybe_visibility,
+        instance_buffer_needs_update,
+    ) in cuboids.iter()
     {
         // Filter all entities that don't have any enabled instances.
         // If an entity went from some to none cuboids, then it will get
@@ -69,6 +102,7 @@ pub(crate) fn extract_cuboids(
                 render_cuboids,
                 CuboidsTransform::from_matrix(transform.compute_matrix()),
                 aabb.clone(),
+                color_options_indices[color_options_id.0],
             ),
         ));
     }

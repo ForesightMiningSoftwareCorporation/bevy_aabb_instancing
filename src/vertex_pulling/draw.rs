@@ -19,7 +19,7 @@ use bevy::{
 pub(crate) type DrawCuboids = (
     SetCuboidsPipeline,
     SetCuboidsViewBindGroup<0>,
-    SetClippingPlanesBindGroup<1>,
+    SetAuxMetaBindGroup<1>,
     SetGpuTransformBufferBindGroup<2>,
     SetGpuCuboidBuffersBindGroup<3>,
     DrawVertexPulledCuboids,
@@ -81,26 +81,31 @@ impl<const I: usize> EntityRenderCommand for SetCuboidsViewBindGroup<I> {
     }
 }
 
+/// Hold the bind group for color options and clipping planes.
 #[derive(Default)]
-pub struct ClippingPlanesMeta {
+pub struct AuxiliaryMeta {
     pub bind_group: Option<BindGroup>,
 }
 
-pub(crate) struct SetClippingPlanesBindGroup<const I: usize>;
+pub(crate) struct SetAuxMetaBindGroup<const I: usize>;
 
-impl<const I: usize> EntityRenderCommand for SetClippingPlanesBindGroup<I> {
-    type Param = SRes<ClippingPlanesMeta>;
+impl<const I: usize> EntityRenderCommand for SetAuxMetaBindGroup<I> {
+    type Param = (SRes<CuboidBufferCache>, SRes<AuxiliaryMeta>);
+
     #[inline]
     fn render<'w>(
         _view: Entity,
-        _item: Entity,
-        clipping_meta: SystemParamItem<'w, '_, Self::Param>,
+        item: Entity,
+        (buffer_cache, aux_meta): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
+        let buffer_cache = buffer_cache.into_inner();
+        let aux_meta = aux_meta.into_inner();
+        let entry = buffer_cache.get(item).unwrap();
         pass.set_bind_group(
             I,
-            clipping_meta.into_inner().bind_group.as_ref().unwrap(),
-            &[],
+            aux_meta.bind_group.as_ref().unwrap(),
+            &[entry.buffers().color_options_index],
         );
         RenderCommandResult::Success
     }

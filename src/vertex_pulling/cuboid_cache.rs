@@ -88,6 +88,7 @@ impl CuboidBufferCache {
 pub struct GpuCuboidBuffers {
     pub(crate) _instance_buffer: StorageBuffer<Vec<Cuboid>>,
     pub(crate) instance_buffer_bind_group: BindGroup,
+    pub(crate) color_options_index: u32,
     pub(crate) transform_index: u32,
     pub(crate) num_cuboids: u32,
 }

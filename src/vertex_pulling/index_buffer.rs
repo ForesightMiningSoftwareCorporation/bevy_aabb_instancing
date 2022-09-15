@@ -7,6 +7,12 @@ pub struct CuboidsIndexBuffer {
     buffer: BufferVec<u32>,
 }
 
+impl Default for CuboidsIndexBuffer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CuboidsIndexBuffer {
     pub fn new() -> Self {
         Self {

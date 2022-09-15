@@ -1,5 +1,5 @@
 use super::prepare::GpuClippingPlaneRanges;
-use crate::cuboids::CuboidsTransform;
+use crate::{cuboids::CuboidsTransform, ColorOptions};
 
 use bevy::{
     prelude::*,
@@ -22,10 +22,10 @@ use bevy::{
 
 pub(crate) struct CuboidsPipeline {
     pub pipeline_id: CachedRenderPipelineId,
-    pub view_layout: BindGroupLayout,
-    pub clipping_planes_layout: BindGroupLayout,
+    pub aux_layout: BindGroupLayout,
     pub cuboids_layout: BindGroupLayout,
     pub transforms_layout: BindGroupLayout,
+    pub view_layout: BindGroupLayout,
 }
 
 pub(crate) const VERTEX_PULLING_SHADER_HANDLE: HandleUntyped =
@@ -52,11 +52,21 @@ impl FromWorld for CuboidsPipeline {
             ],
         });
 
-        let clipping_planes_layout =
-            render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-                label: Some("clipping_planes_layout"),
-                entries: &[BindGroupLayoutEntry {
+        let aux_layout = render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            label: Some("aux_layout"),
+            entries: &[
+                BindGroupLayoutEntry {
                     binding: 0,
+                    visibility: ShaderStages::VERTEX,
+                    ty: BindingType::Buffer {
+                        ty: BufferBindingType::Uniform,
+                        has_dynamic_offset: true,
+                        min_binding_size: Some(ColorOptions::min_size()),
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 1,
                     visibility: ShaderStages::VERTEX,
                     ty: BindingType::Buffer {
                         ty: BufferBindingType::Uniform,
@@ -64,8 +74,9 @@ impl FromWorld for CuboidsPipeline {
                         min_binding_size: Some(GpuClippingPlaneRanges::min_size()),
                     },
                     count: None,
-                }],
-            });
+                },
+            ],
+        });
 
         let transforms_layout =
             render_device.create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -77,7 +88,7 @@ impl FromWorld for CuboidsPipeline {
                         ty: BufferBindingType::Uniform,
                         has_dynamic_offset: true,
                         // We always have a single transform for each instance buffer.
-                        min_binding_size: BufferSize::new(CuboidsTransform::min_size().get()),
+                        min_binding_size: Some(CuboidsTransform::min_size()),
                     },
                     count: None,
                 }],
@@ -103,7 +114,7 @@ impl FromWorld for CuboidsPipeline {
             label: Some("cuboids_pipeline".into()),
             layout: Some(vec![
                 view_layout.clone(),
-                clipping_planes_layout.clone(),
+                aux_layout.clone(),
                 transforms_layout.clone(),
                 cuboids_layout.clone(),
             ]),
@@ -161,7 +172,7 @@ impl FromWorld for CuboidsPipeline {
         Self {
             pipeline_id,
             view_layout,
-            clipping_planes_layout,
+            aux_layout,
             cuboids_layout,
             transforms_layout,
         }

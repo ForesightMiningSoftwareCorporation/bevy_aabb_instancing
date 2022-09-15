@@ -1,6 +1,8 @@
 use bevy::prelude::*;
-use bevy_aabb_instancing::{Cuboid, Cuboids, VertexPullingRenderPlugin};
-use rand::Rng;
+use bevy_aabb_instancing::{
+    ColorOptions, ColorOptionsId, ColorOptionsMap, Cuboid, Cuboids, ScalarHueColorOptions,
+    VertexPullingRenderPlugin, COLOR_MODE_SCALAR_HUE,
+};
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
@@ -11,11 +13,21 @@ fn main() {
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
         .add_startup_system(setup)
+        .add_system(update_scalar_hue_options)
         .run();
 }
 
-fn setup(mut commands: Commands) {
-    let mut rng = rand::thread_rng();
+fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>) {
+    let color_options_id = color_options_map.push(ColorOptions {
+        scalar_hue: ScalarHueColorOptions {
+            min_visible_value: 0.0,
+            max_visible_value: 1000.0,
+            max_blue_value: 0.0,
+            min_red_value: 1000.0,
+        },
+        color_mode: COLOR_MODE_SCALAR_HUE,
+    });
+
     for x_batch in 0..20 {
         for z_batch in 0..20 {
             let mut instances = Vec::with_capacity(10_000);
@@ -30,22 +42,17 @@ fn setup(mut commands: Commands) {
                     let h = 0.01 * d;
                     let min = c - Vec3::new(0.5, h, 0.5);
                     let max = c + Vec3::new(0.5, h, 0.5);
-                    let visible = rng.gen_bool(0.3);
-                    let depth_jitter = rng.gen();
-                    instances.push(Cuboid::new(
-                        min,
-                        max,
-                        Color::hsl(d % 360.0, 1.0, 0.5).as_rgba_u32(),
-                        visible,
-                        depth_jitter,
-                    ));
+                    let visible = true;
+                    let depth_jitter = 0;
+                    let scalar_color = u32::from_le_bytes(d.to_le_bytes());
+                    instances.push(Cuboid::new(min, max, scalar_color, visible, depth_jitter));
                 }
             }
             let cuboids = Cuboids::new(instances);
             let aabb = cuboids.aabb();
             commands
                 .spawn_bundle(SpatialBundle::default())
-                .insert_bundle((cuboids, aabb));
+                .insert_bundle((cuboids, aabb, color_options_id));
         }
     }
 
@@ -59,4 +66,11 @@ fn setup(mut commands: Commands) {
             Vec3::new(0.0, 100.0, 0.0),
             Vec3::new(100.0, 0.0, 100.0),
         ));
+}
+
+fn update_scalar_hue_options(time: Res<Time>, mut color_options_map: ResMut<ColorOptionsMap>) {
+    let options = color_options_map.get_mut(ColorOptionsId(1));
+    let tv = 500.0 * (time.seconds_since_startup().sin() + 1.0) as f32;
+    options.scalar_hue.max_visible_value = tv;
+    options.scalar_hue.min_red_value = tv;
 }
