@@ -1,35 +1,11 @@
 use super::cuboid_cache::CuboidBufferCache;
-use super::draw::{DrawCuboids, ViewMeta};
+use super::draw::DrawCuboids;
 use super::pipeline::CuboidsPipeline;
 
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
 use bevy::render::render_phase::{DrawFunctions, RenderPhase};
-use bevy::render::view::VisibleEntities;
-use bevy::render::{
-    render_resource::{BindGroupDescriptor, BindGroupEntry},
-    renderer::RenderDevice,
-    view::{ExtractedView, ViewUniforms},
-};
-
-pub(crate) fn queue_cuboids_view_bind_group(
-    render_device: Res<RenderDevice>,
-    cuboids_pipeline: Res<CuboidsPipeline>,
-    mut view_meta: ResMut<ViewMeta>,
-    view_uniforms: Res<ViewUniforms>,
-) {
-    if let Some(view_binding) = view_uniforms.uniforms.binding() {
-        view_meta.cuboids_view_bind_group =
-            Some(render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: view_binding,
-                }],
-                label: Some("cuboids_view_bind_group"),
-                layout: &cuboids_pipeline.view_layout,
-            }));
-    }
-}
+use bevy::render::view::{ExtractedView, VisibleEntities};
 
 pub(crate) fn queue_cuboids(
     cuboids_pipeline: Res<CuboidsPipeline>,

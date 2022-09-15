@@ -3,8 +3,11 @@ use super::draw::{ClippingPlanesMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
-use super::prepare::{prepare_clipping_planes, prepare_cuboids, GpuClippingPlaneRanges};
-use super::queue::{queue_cuboids, queue_cuboids_view_bind_group};
+use super::prepare::{
+    prepare_clipping_planes, prepare_cuboids, prepare_cuboids_view_bind_group,
+    GpuClippingPlaneRanges,
+};
+use super::queue::queue_cuboids;
 use crate::cuboids::CuboidsTransform;
 
 use bevy::core_pipeline::core_3d::Opaque3d;
@@ -54,7 +57,10 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_system_to_stage(RenderStage::Extract, extract_clipping_planes)
             .add_system_to_stage(RenderStage::Prepare, prepare_cuboids)
             .add_system_to_stage(RenderStage::Prepare, prepare_clipping_planes)
-            .add_system_to_stage(RenderStage::Queue, queue_cuboids_view_bind_group)
+            // HACK: prepare view bind group should happen in prepare phase, but
+            // ViewUniforms resource is not ready until after prepare phase;
+            // need system order/label exported from bevy
+            .add_system_to_stage(RenderStage::Queue, prepare_cuboids_view_bind_group)
             .add_system_to_stage(RenderStage::Queue, queue_cuboids);
     }
 }

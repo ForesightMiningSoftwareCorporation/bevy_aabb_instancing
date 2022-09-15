@@ -1,20 +1,20 @@
 use super::cuboid_cache::{CuboidBufferCache, GpuCuboidBuffers};
-use super::draw::{ClippingPlanesMeta, TransformsMeta};
+use super::draw::{ClippingPlanesMeta, TransformsMeta, ViewMeta};
 use super::extract::RenderCuboids;
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::CuboidsPipeline;
 use crate::clipping_planes::GpuClippingPlaneRange;
-
 use crate::cuboids::{Cuboid, CuboidsTransform};
-use bevy::render::render_resource::{ShaderType, UniformBuffer};
+
 use bevy::{
     prelude::*,
     render::{
         primitives::Aabb,
-        render_resource::{
-            BindGroupDescriptor, BindGroupEntry, DynamicUniformBuffer, StorageBuffer,
-        },
+        render_resource::{BindGroupDescriptor, BindGroupEntry},
+        render_resource::{DynamicUniformBuffer, StorageBuffer},
+        render_resource::{ShaderType, UniformBuffer},
         renderer::{RenderDevice, RenderQueue},
+        view::ViewUniforms,
     },
 };
 
@@ -150,5 +150,24 @@ pub(crate) fn prepare_cuboids(
         });
     } else {
         assert!(transform_uniforms.is_empty());
+    }
+}
+
+pub(crate) fn prepare_cuboids_view_bind_group(
+    render_device: Res<RenderDevice>,
+    cuboids_pipeline: Res<CuboidsPipeline>,
+    mut view_meta: ResMut<ViewMeta>,
+    view_uniforms: Res<ViewUniforms>,
+) {
+    if let Some(view_binding) = view_uniforms.uniforms.binding() {
+        view_meta.cuboids_view_bind_group =
+            Some(render_device.create_bind_group(&BindGroupDescriptor {
+                entries: &[BindGroupEntry {
+                    binding: 0,
+                    resource: view_binding,
+                }],
+                label: Some("cuboids_view_bind_group"),
+                layout: &cuboids_pipeline.view_layout,
+            }));
     }
 }
