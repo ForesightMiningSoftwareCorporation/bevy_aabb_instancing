@@ -1,6 +1,6 @@
 // Original copyright: robswain, bevy-vertex-pulling, MIT OR Apache-2.0
 
-mod buffer_cache;
+mod cuboid_cache;
 mod draw;
 mod extract;
 mod index_buffer;

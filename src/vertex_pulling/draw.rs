@@ -1,5 +1,5 @@
 use super::{
-    buffer_cache::BufferCache,
+    cuboid_cache::CuboidBufferCache,
     index_buffer::{num_indices_for_cuboids, CuboidsIndexBuffer},
     pipeline::CuboidsPipeline,
 };
@@ -114,7 +114,7 @@ pub struct TransformsMeta {
 pub(crate) struct SetGpuTransformBufferBindGroup<const I: usize>;
 
 impl<const I: usize> EntityRenderCommand for SetGpuTransformBufferBindGroup<I> {
-    type Param = (SRes<BufferCache>, SRes<TransformsMeta>);
+    type Param = (SRes<CuboidBufferCache>, SRes<TransformsMeta>);
 
     #[inline]
     fn render<'w>(
@@ -141,7 +141,7 @@ impl<const I: usize> EntityRenderCommand for SetGpuTransformBufferBindGroup<I> {
 pub(crate) struct SetGpuCuboidBuffersBindGroup<const I: usize>;
 
 impl<const I: usize> EntityRenderCommand for SetGpuCuboidBuffersBindGroup<I> {
-    type Param = SRes<BufferCache>;
+    type Param = SRes<CuboidBufferCache>;
 
     #[inline]
     fn render<'w>(
@@ -159,7 +159,7 @@ impl<const I: usize> EntityRenderCommand for SetGpuCuboidBuffersBindGroup<I> {
 pub(crate) struct DrawVertexPulledCuboids;
 
 impl EntityRenderCommand for DrawVertexPulledCuboids {
-    type Param = (SRes<BufferCache>, SRes<CuboidsIndexBuffer>);
+    type Param = (SRes<CuboidBufferCache>, SRes<CuboidsIndexBuffer>);
 
     #[inline]
     fn render<'w>(

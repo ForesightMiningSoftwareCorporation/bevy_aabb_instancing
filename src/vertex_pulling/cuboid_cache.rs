@@ -8,18 +8,18 @@ use bevy::{
 };
 
 #[derive(Default)]
-pub(crate) struct BufferCache {
-    entries: HashMap<Entity, BufferCacheEntry>,
+pub(crate) struct CuboidBufferCache {
+    cuboids: HashMap<Entity, CachedCuboidBuffers>,
 }
 
-pub struct BufferCacheEntry {
+pub struct CachedCuboidBuffers {
     buffers: GpuCuboidBuffers,
     aabb: Aabb,
     keep_alive: bool,
     enabled: bool,
 }
 
-impl BufferCacheEntry {
+impl CachedCuboidBuffers {
     pub fn aabb(&self) -> &Aabb {
         &self.aabb
     }
@@ -49,19 +49,19 @@ impl BufferCacheEntry {
     }
 }
 
-impl BufferCache {
-    pub fn get(&self, entity: Entity) -> Option<&BufferCacheEntry> {
-        self.entries.get(&entity)
+impl CuboidBufferCache {
+    pub fn get(&self, entity: Entity) -> Option<&CachedCuboidBuffers> {
+        self.cuboids.get(&entity)
     }
 
-    pub fn get_mut(&mut self, entity: Entity) -> Option<&mut BufferCacheEntry> {
-        self.entries.get_mut(&entity)
+    pub fn get_mut(&mut self, entity: Entity) -> Option<&mut CachedCuboidBuffers> {
+        self.cuboids.get_mut(&entity)
     }
 
     pub fn insert(&mut self, entity: Entity, aabb: Aabb, enabled: bool, buffers: GpuCuboidBuffers) {
-        self.entries.insert(
+        self.cuboids.insert(
             entity,
-            BufferCacheEntry {
+            CachedCuboidBuffers {
                 buffers,
                 aabb,
                 keep_alive: false,
@@ -72,14 +72,14 @@ impl BufferCache {
 
     pub fn cull_entities(&mut self) {
         let mut to_remove = Vec::new();
-        for (entity, entry) in self.entries.iter_mut() {
+        for (entity, entry) in self.cuboids.iter_mut() {
             if !entry.keep_alive {
                 to_remove.push(*entity);
             }
             entry.keep_alive = false;
         }
         for entity in to_remove {
-            self.entries.remove(&entity);
+            self.cuboids.remove(&entity);
         }
     }
 }

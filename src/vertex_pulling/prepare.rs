@@ -1,4 +1,4 @@
-use super::buffer_cache::{BufferCache, GpuCuboidBuffers};
+use super::cuboid_cache::{CuboidBufferCache, GpuCuboidBuffers};
 use super::draw::{ClippingPlanesMeta, TransformsMeta};
 use super::extract::RenderCuboids;
 use super::index_buffer::CuboidsIndexBuffer;
@@ -63,7 +63,7 @@ pub(crate) fn prepare_cuboids(
     pipeline: Res<CuboidsPipeline>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    mut buffer_cache: ResMut<BufferCache>,
+    mut buffer_cache: ResMut<CuboidBufferCache>,
     mut transforms_meta: ResMut<TransformsMeta>,
     mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
     mut index_buffer: ResMut<CuboidsIndexBuffer>,

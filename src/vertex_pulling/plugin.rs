@@ -1,4 +1,4 @@
-use super::buffer_cache::BufferCache;
+use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{ClippingPlanesMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids};
 use super::index_buffer::CuboidsIndexBuffer;
@@ -43,7 +43,7 @@ impl Plugin for VertexPullingRenderPlugin {
         render_app
             .add_render_command::<Opaque3d, DrawCuboids>()
             .init_resource::<CuboidsPipeline>()
-            .init_resource::<BufferCache>()
+            .init_resource::<CuboidBufferCache>()
             .init_resource::<DynamicUniformBuffer<CuboidsTransform>>()
             .init_resource::<UniformBuffer<GpuClippingPlaneRanges>>()
             .init_resource::<TransformsMeta>()

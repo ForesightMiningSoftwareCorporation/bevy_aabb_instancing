@@ -1,4 +1,4 @@
-use super::buffer_cache::BufferCache;
+use super::cuboid_cache::CuboidBufferCache;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
 
@@ -27,7 +27,7 @@ pub(crate) fn extract_cuboids(
             Or<(Added<Cuboids>, Changed<Cuboids>)>,
         )>,
     >,
-    mut buffer_cache: ResMut<BufferCache>,
+    mut buffer_cache: ResMut<CuboidBufferCache>,
 ) {
     render_cuboids_scratch.clear();
 

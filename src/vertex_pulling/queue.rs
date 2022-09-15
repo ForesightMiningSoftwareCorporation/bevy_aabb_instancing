@@ -1,4 +1,4 @@
-use super::buffer_cache::BufferCache;
+use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{DrawCuboids, ViewMeta};
 use super::pipeline::CuboidsPipeline;
 
@@ -34,7 +34,7 @@ pub(crate) fn queue_cuboids_view_bind_group(
 pub(crate) fn queue_cuboids(
     cuboids_pipeline: Res<CuboidsPipeline>,
     opaque_3d_draw_functions: Res<DrawFunctions<Opaque3d>>,
-    buffer_cache: Res<BufferCache>,
+    buffer_cache: Res<CuboidBufferCache>,
     mut views: Query<(&ExtractedView, &VisibleEntities, &mut RenderPhase<Opaque3d>)>,
 ) {
     let draw_cuboids = opaque_3d_draw_functions
