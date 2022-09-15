@@ -42,7 +42,7 @@ pub struct ColorOptions {
 /// // Normalize scalar value.
 /// let s = (clamp(scalar, clamp_min, clamp_max) - clamp_min) / (clamp_max - clamp_min);
 /// // Choose hue linearly.
-/// let hue = (hue_zero + s * hue_slope) % 360.0;
+/// let hue = (360.0 + hue_zero + s * hue_slope) % 360.0;
 /// ```
 ///
 /// These options are only available in [`COLOR_MODE_SCALAR_HUE`].

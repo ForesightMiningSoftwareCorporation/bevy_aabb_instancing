@@ -131,7 +131,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
         let cmin = opt.clamp_min;
         let cmax = opt.clamp_max;
         let s = (clamp(scalar, cmin, cmax) - cmin) / (cmax - cmin);
-        let hue = (opt.hue_zero + s * opt.hue_slope) % 360.0;
+        let hue = (360.0 + (opt.hue_zero + s * opt.hue_slope)) % 360.0;
         let saturation = 1.0;
         let lightness = 0.5;
         out.color = vec4<f32>(hsl_to_nonlinear_srgb(hue, saturation, lightness), 1.0);
