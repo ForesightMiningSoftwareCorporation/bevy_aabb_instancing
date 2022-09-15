@@ -59,11 +59,10 @@ pub(crate) fn prepare_clipping_planes(
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn prepare_cuboids(
-    mut transform_indices_scratch: Local<Vec<u32>>,
     pipeline: Res<CuboidsPipeline>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    mut buffer_cache: ResMut<CuboidBufferCache>,
+    mut cuboid_buffers: ResMut<CuboidBufferCache>,
     mut transforms_meta: ResMut<TransformsMeta>,
     mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
     mut index_buffer: ResMut<CuboidsIndexBuffer>,
@@ -76,36 +75,11 @@ pub(crate) fn prepare_cuboids(
     let write_transform_buffer_span =
         bevy::log::info_span!("prepare_cuboids::write_transform_buffer");
 
-    // This seems a little hacky. Need to write the buffer early so we have a binding to use in the loop below.
     transform_uniforms.clear();
-    transform_indices_scratch.clear();
-    write_transform_buffer_span.in_scope(|| {
-        for (_, _, transform, _) in render_cuboids.iter() {
-            transform_indices_scratch.push(transform_uniforms.push(transform.clone()));
-        }
-        transform_uniforms.write_buffer(&render_device, &render_queue);
-    });
-    let transforms_binding = if let Some(b) = transform_uniforms.binding() {
-        b
-    } else {
-        assert!(transform_uniforms.is_empty());
-        return;
-    };
-    transforms_meta.transform_buffer_bind_group = create_bind_group_span.in_scope(|| {
-        Some(render_device.create_bind_group(&BindGroupDescriptor {
-            label: Some("gpu_cuboids_transforms_bind_group"),
-            layout: &pipeline.transforms_layout,
-            entries: &[BindGroupEntry {
-                binding: 0,
-                resource: transforms_binding,
-            }],
-        }))
-    });
 
-    for ((entity, mut cuboids, _, aabb), &transform_index) in render_cuboids
-        .iter_mut()
-        .zip(transform_indices_scratch.iter())
-    {
+    for (entity, mut cuboids, transform, aabb) in render_cuboids.iter_mut() {
+        let transform_index = transform_uniforms.push(transform.clone());
+
         match &mut *cuboids {
             RenderCuboids::UpdateCuboids {
                 cuboids: new_cuboids,
@@ -141,7 +115,7 @@ pub(crate) fn prepare_cuboids(
                     })
                 });
 
-                buffer_cache.insert(
+                cuboid_buffers.insert(
                     entity,
                     aabb.clone(),
                     *is_visible,
@@ -154,9 +128,27 @@ pub(crate) fn prepare_cuboids(
                 );
             }
             RenderCuboids::UseCachedCuboids => {
-                let entry = buffer_cache.get_mut(entity).unwrap();
+                let entry = cuboid_buffers.get_mut(entity).unwrap();
                 entry.buffers_mut().transform_index = transform_index;
             }
         }
+    }
+
+    write_transform_buffer_span.in_scope(|| {
+        transform_uniforms.write_buffer(&render_device, &render_queue);
+    });
+    if let Some(transforms_binding) = transform_uniforms.binding() {
+        transforms_meta.transform_buffer_bind_group = create_bind_group_span.in_scope(|| {
+            Some(render_device.create_bind_group(&BindGroupDescriptor {
+                label: Some("gpu_cuboids_transforms_bind_group"),
+                layout: &pipeline.transforms_layout,
+                entries: &[BindGroupEntry {
+                    binding: 0,
+                    resource: transforms_binding,
+                }],
+            }))
+        });
+    } else {
+        assert!(transform_uniforms.is_empty());
     }
 }
