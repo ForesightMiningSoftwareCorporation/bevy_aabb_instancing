@@ -3,6 +3,8 @@ use bevy::{
     render::{primitives::Aabb, render_resource::ShaderType},
 };
 
+/// Value that determines the color of a [`Cuboid`] based on the associated
+/// [`ColorOptions`](crate::ColorOptions).
 pub type Color = u32;
 
 /// Metadata encoded in 32 bits:
@@ -48,7 +50,7 @@ impl Cuboid {
     }
 }
 
-/// The set of cuboids to be extracted for rendering.
+/// A set of cuboids to be extracted for rendering.
 #[derive(Clone, Component, Debug, Default)]
 pub struct Cuboids {
     /// Instances to be rendered.

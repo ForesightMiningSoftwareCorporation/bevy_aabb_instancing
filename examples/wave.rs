@@ -8,7 +8,7 @@ use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(Msaa { samples: 1 })
+        .insert_resource(Msaa { samples: 4 })
         .add_plugin(VertexPullingRenderPlugin { outlines: true })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())

@@ -1,6 +1,11 @@
 use bevy::prelude::*;
 use bevy::render::render_resource::{DynamicUniformBuffer, ShaderType};
 
+/// Bare enum for toggling shader behavior for [`Color`].
+///
+/// One of:
+/// - [`COLOR_MODE_RGB`]
+/// - [`COLOR_MODE_SCALAR_HUE`]
 pub type ColorMode = u32;
 
 /// "Manual" coloring based on RGB-valued `cuboid.color`.
