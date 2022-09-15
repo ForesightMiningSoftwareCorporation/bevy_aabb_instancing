@@ -49,10 +49,9 @@ impl Cuboid {
 }
 
 /// The set of cuboids to be extracted for rendering.
-#[derive(Clone, Component, Debug, Default, ShaderType)]
+#[derive(Clone, Component, Debug, Default)]
 pub struct Cuboids {
     /// Instances to be rendered.
-    #[size(runtime)]
     pub instances: Vec<Cuboid>,
 }
 
