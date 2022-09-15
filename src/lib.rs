@@ -32,10 +32,12 @@
 //! src="https://user-images.githubusercontent.com/2632925/151242316-db3455d1-4934-4374-8369-1818daf512dd.png"
 //! alt="Foresight Mining Software Corporation" width="480">
 
-mod component;
+mod clipping_planes;
+mod cuboids;
 mod vertex_pulling;
 
-pub use component::*;
+pub use clipping_planes::*;
+pub use cuboids::*;
 pub use vertex_pulling::plugin::*;
 
 type SmallKeyHashMap<K, V> = ahash::AHashMap<K, V>;

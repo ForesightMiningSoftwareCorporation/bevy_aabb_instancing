@@ -1,26 +1,11 @@
 use super::buffer_cache::BufferCache;
-use crate::component::*;
+use crate::clipping_planes::*;
+use crate::cuboids::*;
 
 use bevy::{
     prelude::*,
-    render::{primitives::Aabb, render_resource::ShaderType, Extract},
+    render::{primitives::Aabb, Extract},
 };
-
-#[derive(Clone, Component, ShaderType)]
-pub(crate) struct CuboidsTransform {
-    pub matrix: Mat4,
-    pub inv_matrix: Mat4,
-}
-
-impl CuboidsTransform {
-    pub fn new(matrix: Mat4, inv_matrix: Mat4) -> Self {
-        Self { matrix, inv_matrix }
-    }
-
-    pub fn from_matrix(m: Mat4) -> Self {
-        Self::new(m, m.inverse())
-    }
-}
 
 #[derive(Clone, Component)]
 pub(crate) enum RenderCuboids {
@@ -110,12 +95,4 @@ pub(crate) fn extract_clipping_planes(
             })
             .collect::<Vec<_>>(),
     );
-}
-
-#[derive(Clone, Component, Default, ShaderType)]
-pub struct GpuClippingPlaneRange {
-    pub origin: Vec3,
-    pub unit_normal: Vec3,
-    pub min_sdist: f32,
-    pub max_sdist: f32,
 }

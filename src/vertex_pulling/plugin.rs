@@ -1,10 +1,11 @@
 use super::buffer_cache::BufferCache;
 use super::draw::{ClippingPlanesMeta, DrawCuboids, TransformsMeta, ViewMeta};
-use super::extract::{extract_clipping_planes, extract_cuboids, CuboidsTransform};
+use super::extract::{extract_clipping_planes, extract_cuboids};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
 use super::prepare::{prepare_clipping_planes, prepare_cuboids, GpuClippingPlaneRanges};
 use super::queue::{queue_cuboids, queue_cuboids_view_bind_group};
+use crate::cuboids::CuboidsTransform;
 
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;

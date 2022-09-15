@@ -1,4 +1,5 @@
-use super::{extract::CuboidsTransform, prepare::GpuClippingPlaneRanges};
+use super::prepare::GpuClippingPlaneRanges;
+use crate::cuboids::CuboidsTransform;
 
 use bevy::{
     prelude::*,

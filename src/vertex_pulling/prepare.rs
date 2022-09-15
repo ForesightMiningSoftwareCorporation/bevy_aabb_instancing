@@ -1,10 +1,11 @@
 use super::buffer_cache::{BufferCache, GpuCuboidBuffers};
 use super::draw::{ClippingPlanesMeta, TransformsMeta};
-use super::extract::{CuboidsTransform, GpuClippingPlaneRange, RenderCuboids};
+use super::extract::RenderCuboids;
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::CuboidsPipeline;
+use crate::clipping_planes::GpuClippingPlaneRange;
 
-use crate::component::Cuboid;
+use crate::cuboids::{Cuboid, CuboidsTransform};
 use bevy::render::render_resource::{ShaderType, UniformBuffer};
 use bevy::{
     prelude::*,
