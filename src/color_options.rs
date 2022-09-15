@@ -29,24 +29,34 @@ pub struct ColorOptionsId(pub usize);
 /// Shading options, constant for each draw call.
 #[derive(Clone, Debug, ShaderType)]
 pub struct ColorOptions {
-    pub scalar_hue: ScalarHueColorOptions,
     pub color_mode: ColorMode,
+    #[align(16)]
+    pub scalar_hue: ScalarHueColorOptions,
 }
 
 /// Dynamic controls for coloring and visibility of scalar values encoded in
 /// `cuboid.color`.
 ///
+/// HSL hue is determined as:
+/// ```
+/// // Normalize scalar value.
+/// let s = (clamp(scalar, clamp_min, clamp_max) - clamp_min) / (clamp_max - clamp_min);
+/// // Choose hue linearly.
+/// let hue = (hue_zero + s * hue_slope) % 360.0;
+/// ```
+///
 /// These options are only available in [`COLOR_MODE_SCALAR_HUE`].
 #[derive(Clone, Debug, Default, ShaderType)]
 pub struct ScalarHueColorOptions {
-    /// Cuboids with `cuboid.color < min_visible_value` will be clipped.
-    pub min_visible_value: f32,
-    /// Cuboids with `cuboid.color > max_visible_value` will be clipped.
-    pub max_visible_value: f32,
-    /// Cuboid colors range from blue to red hue. Cuboids with `cuboid.color <= max_blue_value` are blue.
-    pub max_blue_value: f32,
-    /// Cuboid colors range from blue to red hue. Cuboids with `cuboid.color >= min_red_value` are red.
-    pub min_red_value: f32,
+    /// Cuboids with `cuboid.color < min_visible` will be clipped.
+    pub min_visible: f32,
+    /// Cuboids with `cuboid.color > max_visible` will be clipped.
+    pub max_visible: f32,
+
+    pub clamp_min: f32,
+    pub clamp_max: f32,
+    pub hue_zero: f32,
+    pub hue_slope: f32,
 }
 
 /// Resource used to create and modify a set of [`ColorOptions`] that are

@@ -20,10 +20,12 @@ fn main() {
 fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>) {
     let color_options_id = color_options_map.push(ColorOptions {
         scalar_hue: ScalarHueColorOptions {
-            min_visible_value: 0.0,
-            max_visible_value: 1000.0,
-            max_blue_value: 0.0,
-            min_red_value: 1000.0,
+            min_visible: 0.0,
+            max_visible: 1000.0,
+            clamp_min: 0.0,
+            clamp_max: 1000.0,
+            hue_zero: 240.0,
+            hue_slope: -300.0,
         },
         color_mode: COLOR_MODE_SCALAR_HUE,
     });
@@ -71,6 +73,6 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
 fn update_scalar_hue_options(time: Res<Time>, mut color_options_map: ResMut<ColorOptionsMap>) {
     let options = color_options_map.get_mut(ColorOptionsId(1));
     let tv = 500.0 * (time.seconds_since_startup().sin() + 1.0) as f32;
-    options.scalar_hue.max_visible_value = tv;
-    options.scalar_hue.min_red_value = tv;
+    options.scalar_hue.max_visible = tv;
+    options.scalar_hue.clamp_max = tv;
 }
