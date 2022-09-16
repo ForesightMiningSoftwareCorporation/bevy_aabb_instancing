@@ -102,6 +102,13 @@ struct VertexOutput {
     #endif
 }
 
+fn discard_vertex() -> VertexOutput {
+    var out = VertexOutput();
+    // Apparently GPUs understand this magic.
+    out.clip_position.x = bitcast<f32>(0x7fc00000); // nan
+    return out;
+}
+
 @vertex
 fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     var out: VertexOutput;
@@ -112,7 +119,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     // Check visibility mask.
     if ((cuboid.meta_bits & 0x01u) != 0u) {
         // DISCARD CUBOID
-        return VertexOutput();
+        return discard_vertex();
     }
 
     if (color_options.color_mode == 1u) {
@@ -124,7 +131,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
             scalar > opt.max_visible)
         {
             // DISCARD CUBOID
-            return VertexOutput();
+            return discard_vertex();
         }
 
         // HSL
@@ -157,7 +164,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
             let sdist_to_plane = dot(tfm_cuboid_center - range.origin, range.unit_normal);
             if sdist_to_plane < range.min_sdist || sdist_to_plane > range.max_sdist {
                 // DISCARD CUBOID
-                return VertexOutput();
+                return discard_vertex();
             }
         }
     }
