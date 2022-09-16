@@ -83,7 +83,7 @@ impl ColorOptionsMap {
         self.options.is_empty()
     }
 
-    pub fn get(&mut self, id: ColorOptionsId) -> &ColorOptions {
+    pub fn get(&self, id: ColorOptionsId) -> &ColorOptions {
         &self.options[id.0]
     }
 
