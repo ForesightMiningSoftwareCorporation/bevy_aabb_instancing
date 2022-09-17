@@ -19,7 +19,7 @@ use bevy::{
 pub(crate) type DrawCuboids = (
     SetCuboidsPipeline,
     SetCuboidsViewBindGroup<0>,
-    SetAuxMetaBindGroup<1>,
+    SetAuxBindGroup<1>,
     SetGpuTransformBufferBindGroup<2>,
     SetGpuCuboidBuffersBindGroup<3>,
     DrawVertexPulledCuboids,
@@ -87,9 +87,9 @@ pub struct AuxiliaryMeta {
     pub bind_group: Option<BindGroup>,
 }
 
-pub(crate) struct SetAuxMetaBindGroup<const I: usize>;
+pub(crate) struct SetAuxBindGroup<const I: usize>;
 
-impl<const I: usize> EntityRenderCommand for SetAuxMetaBindGroup<I> {
+impl<const I: usize> EntityRenderCommand for SetAuxBindGroup<I> {
     type Param = (SRes<CuboidBufferCache>, SRes<AuxiliaryMeta>);
 
     #[inline]
