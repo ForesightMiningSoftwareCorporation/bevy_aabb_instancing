@@ -8,7 +8,7 @@ use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(Msaa { samples: 4 })
+        .insert_resource(Msaa { samples: 1 })
         .add_plugin(VertexPullingRenderPlugin { outlines: true })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
@@ -30,13 +30,17 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
         color_mode: COLOR_MODE_SCALAR_HUE,
     });
 
-    for x_batch in 0..20 {
-        for z_batch in 0..20 {
-            let mut instances = Vec::with_capacity(10_000);
-            for x in 0..100 {
-                for z in 0..100 {
-                    let x = (x_batch * 100) as f32 + x as f32 - 1000.0;
-                    let z = (z_batch * 100) as f32 + z as f32 - 1000.0;
+    const PATCHES_PER_DIM: usize = 20;
+    const PATCH_SIZE: usize = 150;
+    const SCENE_RADIUS: f32 = 1500.0;
+
+    for x_batch in 0..PATCHES_PER_DIM {
+        for z_batch in 0..PATCHES_PER_DIM {
+            let mut instances = Vec::with_capacity(PATCH_SIZE * PATCH_SIZE);
+            for x in 0..PATCH_SIZE {
+                for z in 0..PATCH_SIZE {
+                    let x = (x_batch * PATCH_SIZE) as f32 + x as f32 - SCENE_RADIUS;
+                    let z = (z_batch * PATCH_SIZE) as f32 + z as f32 - SCENE_RADIUS;
                     let d = (x * x + z * z).sqrt();
                     let amp = 0.2 * d;
                     let y = amp * ((0.05 * x).cos() * (0.05 * z).sin());
