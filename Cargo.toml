@@ -10,9 +10,6 @@ repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy-aabb-in
 [features]
 trace = ["bevy/trace_chrome"]
 
-[dependencies]
-ahash = "0.7"
-
 [dependencies.bevy]
 version = "0.8"
 default-features = false
