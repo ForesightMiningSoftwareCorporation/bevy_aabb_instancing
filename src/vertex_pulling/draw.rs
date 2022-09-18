@@ -101,11 +101,11 @@ impl<const I: usize> EntityRenderCommand for SetAuxBindGroup<I> {
     ) -> RenderCommandResult {
         let buffer_cache = buffer_cache.into_inner();
         let aux_meta = aux_meta.into_inner();
-        let entry = buffer_cache.get(item).unwrap();
+        let entry = buffer_cache.entries.get(&item).unwrap();
         pass.set_bind_group(
             I,
             aux_meta.bind_group.as_ref().unwrap(),
-            &[entry.buffers().color_options_index],
+            &[entry.color_options_index],
         );
         RenderCommandResult::Success
     }
@@ -128,16 +128,15 @@ impl<const I: usize> EntityRenderCommand for SetGpuTransformBufferBindGroup<I> {
         (buffer_cache, transforms_meta): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let buffer_cache = buffer_cache.into_inner();
         let transforms_meta = transforms_meta.into_inner();
-        let entry = buffer_cache.get(item).unwrap();
+        let entry = buffer_cache.into_inner().entries.get(&item).unwrap();
         pass.set_bind_group(
             I,
             transforms_meta
                 .transform_buffer_bind_group
                 .as_ref()
                 .unwrap(),
-            &[entry.buffers().transform_index],
+            &[entry.transform_index],
         );
         RenderCommandResult::Success
     }
@@ -155,8 +154,8 @@ impl<const I: usize> EntityRenderCommand for SetGpuCuboidBuffersBindGroup<I> {
         buffer_cache: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let entry = buffer_cache.into_inner().get(item).unwrap();
-        pass.set_bind_group(I, &entry.buffers().instance_buffer_bind_group, &[]);
+        let entry = buffer_cache.into_inner().entries.get(&item).unwrap();
+        pass.set_bind_group(I, entry.instance_buffer_bind_group.as_ref().unwrap(), &[]);
         RenderCommandResult::Success
     }
 }
@@ -173,8 +172,9 @@ impl EntityRenderCommand for DrawVertexPulledCuboids {
         (buffer_cache, index_buffer): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        let entry = buffer_cache.into_inner().get(item).unwrap();
-        let num_indices = num_indices_for_cuboids(entry.buffers().num_cuboids);
+        let entry = buffer_cache.into_inner().entries.get(&item).unwrap();
+        let num_indices =
+            num_indices_for_cuboids(entry.instance_buffer.get().len().try_into().unwrap());
         pass.set_index_buffer(
             index_buffer.into_inner().buffer().unwrap().slice(..),
             0,

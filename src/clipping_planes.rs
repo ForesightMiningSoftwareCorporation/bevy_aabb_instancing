@@ -26,3 +26,9 @@ pub(crate) struct GpuClippingPlaneRange {
     pub min_sdist: f32,
     pub max_sdist: f32,
 }
+
+#[derive(Default, ShaderType)]
+pub(crate) struct GpuClippingPlaneRanges {
+    pub ranges: [GpuClippingPlaneRange; 3],
+    pub num_ranges: u32,
+}

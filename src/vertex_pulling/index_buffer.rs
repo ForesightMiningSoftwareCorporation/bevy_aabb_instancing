@@ -5,6 +5,7 @@ use bevy::render::{
 
 pub struct CuboidsIndexBuffer {
     buffer: BufferVec<u32>,
+    dirty: bool,
 }
 
 impl Default for CuboidsIndexBuffer {
@@ -17,15 +18,11 @@ impl CuboidsIndexBuffer {
     pub fn new() -> Self {
         Self {
             buffer: BufferVec::new(BufferUsages::INDEX),
+            dirty: false,
         }
     }
 
-    pub fn grow_to_fit_num_cuboids(
-        &mut self,
-        num_cuboids: u32,
-        render_device: &RenderDevice,
-        render_queue: &RenderQueue,
-    ) {
+    pub fn grow_to_fit_num_cuboids(&mut self, num_cuboids: u32) {
         /// The indices for all triangles in a cuboid mesh (given 8 corner
         /// vertices).
         ///
@@ -48,7 +45,14 @@ impl CuboidsIndexBuffer {
                 self.buffer
                     .push((cuboid << 5) + CUBE_INDICES[cuboid_local as usize]);
             }
-            self.buffer.write_buffer(render_device, render_queue)
+            self.dirty = true;
+        }
+    }
+
+    pub fn write_buffer(&mut self, render_device: &RenderDevice, render_queue: &RenderQueue) {
+        if self.dirty {
+            self.buffer.write_buffer(render_device, render_queue);
+            self.dirty = false;
         }
     }
 

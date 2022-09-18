@@ -74,7 +74,7 @@ impl Cuboids {
     }
 }
 
-#[derive(Clone, Component, ShaderType)]
+#[derive(Clone, ShaderType)]
 pub(crate) struct CuboidsTransform {
     pub matrix: Mat4,
     pub inv_matrix: Mat4,

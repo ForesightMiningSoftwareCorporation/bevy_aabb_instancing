@@ -4,10 +4,12 @@ use super::extract::{extract_clipping_planes, extract_cuboids};
 use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
 use super::prepare::{
-    prepare_auxiliary_bind_group, prepare_clipping_planes, prepare_color_options, prepare_cuboids,
-    prepare_cuboids_view_bind_group, GpuClippingPlaneRanges,
+    prepare_auxiliary_bind_group, prepare_clipping_planes, prepare_color_options,
+    prepare_cuboid_transforms, prepare_cuboids, prepare_cuboids_index_buffer,
+    prepare_cuboids_view_bind_group,
 };
 use super::queue::queue_cuboids;
+use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::cuboids::CuboidsTransform;
 use crate::{ColorOptions, ColorOptionsMap};
 
@@ -67,6 +69,8 @@ impl Plugin for VertexPullingRenderPlugin {
                     .after(prepare_color_options)
                     .after(prepare_clipping_planes),
             )
+            .add_system_to_stage(RenderStage::Prepare, prepare_cuboids_index_buffer)
+            .add_system_to_stage(RenderStage::Prepare, prepare_cuboid_transforms)
             .add_system_to_stage(RenderStage::Prepare, prepare_cuboids)
             // HACK: prepare view bind group should happen in prepare phase, but
             // ViewUniforms resource is not ready until after prepare phase;

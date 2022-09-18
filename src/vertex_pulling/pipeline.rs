@@ -1,4 +1,4 @@
-use super::prepare::GpuClippingPlaneRanges;
+use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::{cuboids::CuboidsTransform, ColorOptions};
 
 use bevy::{

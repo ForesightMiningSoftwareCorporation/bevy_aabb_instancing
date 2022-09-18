@@ -25,12 +25,12 @@ pub(crate) fn queue_cuboids(
         let inverse_view_row_2 = inverse_view_matrix.row(2);
 
         for &entity in &visible_entities.entities {
-            if let Some(entry) = buffer_cache.get(entity) {
-                if entry.is_enabled() {
+            if let Some(entry) = buffer_cache.entries.get(&entity) {
+                if entry.enabled {
                     opaque_phase.add(Opaque3d {
                         pipeline: cuboids_pipeline.pipeline_id,
                         entity,
-                        distance: inverse_view_row_2.dot(entry.position().extend(1.0)),
+                        distance: inverse_view_row_2.dot(entry.position.extend(1.0)),
                         draw_function: draw_cuboids,
                     });
                 }

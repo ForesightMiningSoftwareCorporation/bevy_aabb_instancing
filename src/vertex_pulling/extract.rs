@@ -1,29 +1,16 @@
 use super::cuboid_cache::CuboidBufferCache;
+use super::index_buffer::CuboidsIndexBuffer;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
 use crate::ColorOptions;
 use crate::ColorOptionsId;
 use crate::ColorOptionsMap;
-use crate::ColorOptionsUniformIndex;
 
-use bevy::render::render_resource::DynamicUniformBuffer;
+use bevy::render::render_resource::{DynamicUniformBuffer, UniformBuffer};
 use bevy::{prelude::*, render::Extract};
-
-#[derive(Clone, Component)]
-pub(crate) enum RenderCuboids {
-    UpdateCuboids { cuboids: Cuboids, is_visible: bool },
-    UseCachedCuboids,
-}
 
 #[allow(clippy::type_complexity)]
 pub(crate) fn extract_cuboids(
-    mut commands: Commands,
-    mut render_cuboids_scratch: Local<
-        Vec<(
-            Entity,
-            (RenderCuboids, CuboidsTransform, ColorOptionsUniformIndex),
-        )>,
-    >,
     cuboids: Extract<
         Query<(
             Entity,
@@ -36,9 +23,11 @@ pub(crate) fn extract_cuboids(
     >,
     color_options: Extract<Res<ColorOptionsMap>>,
     mut color_options_uniforms: ResMut<DynamicUniformBuffer<ColorOptions>>,
-    mut buffer_cache: ResMut<CuboidBufferCache>,
+    mut cuboid_buffers: ResMut<CuboidBufferCache>,
+    mut index_buffer: ResMut<CuboidsIndexBuffer>,
+    mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
 ) {
-    render_cuboids_scratch.clear();
+    transform_uniforms.clear();
 
     if color_options.is_empty() {
         warn!("Cannot draw Cuboids with empty ColorOptionsMap");
@@ -57,65 +46,57 @@ pub(crate) fn extract_cuboids(
         instance_buffer_needs_update,
     ) in cuboids.iter()
     {
-        // Filter all entities that don't have any enabled instances.
-        // If an entity went from some to none cuboids, then it will get
-        // culled from the buffer cache.
+        // Filter all entities that don't have any instances. If an entity went
+        // from non-empty to empty, then it will get culled from the buffer
+        // cache.
         if cuboids.instances.is_empty() {
             continue;
         }
+
+        let transform = CuboidsTransform::from_matrix(transform.compute_matrix());
 
         let is_visible = maybe_visibility
             .map(ComputedVisibility::is_visible)
             .unwrap_or(true);
 
-        let render_cuboids = if instance_buffer_needs_update {
-            RenderCuboids::UpdateCuboids {
-                cuboids: cuboids.clone(),
-                is_visible,
-            }
-            // Buffer cache will get filled in RenderState::Prepare.
-        } else {
-            let entry = buffer_cache.get_mut(entity).unwrap();
-            entry.keep_alive();
-            if is_visible {
-                entry.enable();
-            } else {
-                entry.disable();
-            }
-            RenderCuboids::UseCachedCuboids
-        };
+        let entry = cuboid_buffers.entries.entry(entity).or_default();
+        if instance_buffer_needs_update {
+            entry.instance_buffer.set(cuboids.instances.clone());
+        }
+        entry.color_options_index = color_options_indices[color_options_id.0].0;
+        entry.dirty = instance_buffer_needs_update;
+        entry.enabled = is_visible;
+        entry.keep_alive = true;
+        entry.position = transform.position();
+        entry.transform_index = transform_uniforms.push(transform);
 
-        // Need to spawn even if we're reusing cached cuboids, since transforms are overwritten every frame (in prepare phase).
-        render_cuboids_scratch.push((
-            entity,
-            (
-                render_cuboids,
-                CuboidsTransform::from_matrix(transform.compute_matrix()),
-                color_options_indices[color_options_id.0],
-            ),
-        ));
+        index_buffer.grow_to_fit_num_cuboids(cuboids.instances.len().try_into().unwrap());
     }
-    buffer_cache.cull_entities();
 
-    commands.insert_or_spawn_batch(render_cuboids_scratch.clone());
+    cuboid_buffers.cull_entities();
 }
 
 pub(crate) fn extract_clipping_planes(
-    mut commands: Commands,
     clipping_planes: Extract<Query<(&ClippingPlaneRange, &GlobalTransform)>>,
+    mut clipping_plane_uniform: ResMut<UniformBuffer<GpuClippingPlaneRanges>>,
 ) {
-    commands.spawn_batch(
-        clipping_planes
-            .iter()
-            .map(|(range, plane_tfm)| {
-                let (_, rotation, translation) = plane_tfm.to_scale_rotation_translation();
-                (GpuClippingPlaneRange {
-                    origin: translation,
-                    unit_normal: rotation * Vec3::Y,
-                    min_sdist: range.min_sdist,
-                    max_sdist: range.max_sdist,
-                },)
-            })
-            .collect::<Vec<_>>(),
-    );
+    let mut iter = clipping_planes.iter();
+    let mut gpu_planes = GpuClippingPlaneRanges::default();
+    for (range, transform) in iter.by_ref() {
+        let (_, rotation, translation) = transform.to_scale_rotation_translation();
+        gpu_planes.ranges[gpu_planes.num_ranges as usize] = GpuClippingPlaneRange {
+            origin: translation,
+            unit_normal: rotation * Vec3::Y,
+            min_sdist: range.min_sdist,
+            max_sdist: range.max_sdist,
+        };
+        gpu_planes.num_ranges += 1;
+        if gpu_planes.num_ranges == 3 {
+            break;
+        }
+    }
+    if iter.next().is_some() {
+        warn!("Too many GpuClippingPlaneRanges entities, at most 3 are supported");
+    }
+    clipping_plane_uniform.set(gpu_planes);
 }
