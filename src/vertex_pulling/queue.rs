@@ -19,16 +19,18 @@ pub(crate) fn queue_cuboids(
         .unwrap();
 
     for (view, visible_entities, mut opaque_phase) in views.iter_mut() {
+        // TODO: add method so we can use this on a vector
+        // let range_finder = view.rangefinder3d();
         let inverse_view_matrix = view.transform.compute_matrix().inverse();
         let inverse_view_row_2 = inverse_view_matrix.row(2);
+
         for &entity in &visible_entities.entities {
             if let Some(entry) = buffer_cache.get(entity) {
                 if entry.is_enabled() {
-                    let entity_center = entry.aabb().center;
                     opaque_phase.add(Opaque3d {
                         pipeline: cuboids_pipeline.pipeline_id,
                         entity,
-                        distance: inverse_view_row_2.dot(entity_center.extend(1.0)),
+                        distance: inverse_view_row_2.dot(entry.position().extend(1.0)),
                         draw_function: draw_cuboids,
                     });
                 }

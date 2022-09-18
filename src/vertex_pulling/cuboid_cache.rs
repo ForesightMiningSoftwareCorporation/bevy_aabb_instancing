@@ -2,7 +2,6 @@ use crate::Cuboid;
 
 use bevy::{
     prelude::*,
-    render::primitives::Aabb,
     render::render_resource::{BindGroup, StorageBuffer},
     utils::HashMap,
 };
@@ -14,22 +13,22 @@ pub(crate) struct CuboidBufferCache {
 
 pub struct CachedCuboidBuffers {
     buffers: GpuCuboidBuffers,
-    aabb: Aabb,
+    position: Vec3,
     keep_alive: bool,
     enabled: bool,
 }
 
 impl CachedCuboidBuffers {
-    pub fn aabb(&self) -> &Aabb {
-        &self.aabb
-    }
-
     pub fn buffers(&self) -> &GpuCuboidBuffers {
         &self.buffers
     }
 
     pub fn buffers_mut(&mut self) -> &mut GpuCuboidBuffers {
         &mut self.buffers
+    }
+
+    pub fn position(&self) -> Vec3 {
+        self.position
     }
 
     pub fn is_enabled(&self) -> bool {
@@ -58,12 +57,18 @@ impl CuboidBufferCache {
         self.cuboids.get_mut(&entity)
     }
 
-    pub fn insert(&mut self, entity: Entity, aabb: Aabb, enabled: bool, buffers: GpuCuboidBuffers) {
+    pub fn insert(
+        &mut self,
+        entity: Entity,
+        position: Vec3,
+        enabled: bool,
+        buffers: GpuCuboidBuffers,
+    ) {
         self.cuboids.insert(
             entity,
             CachedCuboidBuffers {
                 buffers,
-                aabb,
+                position,
                 keep_alive: false,
                 enabled,
             },

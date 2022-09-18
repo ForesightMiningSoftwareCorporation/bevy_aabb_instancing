@@ -88,4 +88,8 @@ impl CuboidsTransform {
     pub fn from_matrix(m: Mat4) -> Self {
         Self::new(m, m.inverse())
     }
+
+    pub fn position(&self) -> Vec3 {
+        self.matrix.col(3).truncate()
+    }
 }

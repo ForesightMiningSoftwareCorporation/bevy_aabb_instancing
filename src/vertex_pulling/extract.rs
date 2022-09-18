@@ -7,10 +7,7 @@ use crate::ColorOptionsMap;
 use crate::ColorOptionsUniformIndex;
 
 use bevy::render::render_resource::DynamicUniformBuffer;
-use bevy::{
-    prelude::*,
-    render::{primitives::Aabb, Extract},
-};
+use bevy::{prelude::*, render::Extract};
 
 #[derive(Clone, Component)]
 pub(crate) enum RenderCuboids {
@@ -24,12 +21,7 @@ pub(crate) fn extract_cuboids(
     mut render_cuboids_scratch: Local<
         Vec<(
             Entity,
-            (
-                RenderCuboids,
-                CuboidsTransform,
-                Aabb,
-                ColorOptionsUniformIndex,
-            ),
+            (RenderCuboids, CuboidsTransform, ColorOptionsUniformIndex),
         )>,
     >,
     cuboids: Extract<
@@ -37,7 +29,6 @@ pub(crate) fn extract_cuboids(
             Entity,
             &Cuboids,
             &GlobalTransform,
-            &Aabb,
             &ColorOptionsId,
             Option<&ComputedVisibility>,
             Or<(Added<Cuboids>, Changed<Cuboids>)>,
@@ -61,7 +52,6 @@ pub(crate) fn extract_cuboids(
         entity,
         cuboids,
         transform,
-        aabb,
         color_options_id,
         maybe_visibility,
         instance_buffer_needs_update,
@@ -101,7 +91,6 @@ pub(crate) fn extract_cuboids(
             (
                 render_cuboids,
                 CuboidsTransform::from_matrix(transform.compute_matrix()),
-                aabb.clone(),
                 color_options_indices[color_options_id.0],
             ),
         ));

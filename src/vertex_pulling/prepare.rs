@@ -10,7 +10,6 @@ use crate::{ColorOptions, ColorOptionsUniformIndex};
 use bevy::{
     prelude::*,
     render::{
-        primitives::Aabb,
         render_resource::{BindGroupDescriptor, BindGroupEntry},
         render_resource::{DynamicUniformBuffer, StorageBuffer},
         render_resource::{ShaderType, UniformBuffer},
@@ -97,7 +96,6 @@ pub(crate) fn prepare_cuboids(
         Entity,
         &mut RenderCuboids,
         &CuboidsTransform,
-        &Aabb,
         &ColorOptionsUniformIndex,
     )>,
 ) {
@@ -110,7 +108,7 @@ pub(crate) fn prepare_cuboids(
 
     transform_uniforms.clear();
 
-    for (entity, mut cuboids, transform, aabb, color_options_index) in render_cuboids.iter_mut() {
+    for (entity, mut cuboids, transform, color_options_index) in render_cuboids.iter_mut() {
         let transform_index = transform_uniforms.push(transform.clone());
 
         match &mut *cuboids {
@@ -150,7 +148,7 @@ pub(crate) fn prepare_cuboids(
 
                 cuboid_buffers.insert(
                     entity,
-                    aabb.clone(),
+                    transform.position(),
                     *is_visible,
                     GpuCuboidBuffers {
                         _instance_buffer: instance_buffer,
