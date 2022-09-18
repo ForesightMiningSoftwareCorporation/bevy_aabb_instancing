@@ -93,3 +93,10 @@ impl CuboidsTransform {
         self.matrix.col(3).truncate()
     }
 }
+
+#[derive(Bundle)]
+pub struct CuboidsBundle {
+    pub cuboids: Cuboids,
+    #[bundle]
+    pub spatial: SpatialBundle,
+}
