@@ -108,7 +108,7 @@ pub(crate) fn prepare_cuboids(
     mut cuboid_buffers: ResMut<CuboidBufferCache>,
 ) {
     let write_instance_buffer_span =
-        bevy::log::info_span!("prepare_cuboids::create_instance_buffer");
+        bevy::log::info_span!("prepare_cuboids::write_instance_buffer");
     let create_bind_group_span = bevy::log::info_span!("prepare_cuboids::create_bind_group");
 
     // Write all dirty buffers from the cuboids cache.
