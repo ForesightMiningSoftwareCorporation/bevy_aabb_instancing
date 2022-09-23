@@ -91,12 +91,14 @@ pub(crate) fn extract_clipping_planes(
             max_sdist: range.max_sdist,
         };
         gpu_planes.num_ranges += 1;
-        if gpu_planes.num_ranges == 3 {
+        if gpu_planes.num_ranges as usize == MAX_CLIPPING_PLANES {
             break;
         }
     }
     if iter.next().is_some() {
-        warn!("Too many GpuClippingPlaneRanges entities, at most 3 are supported");
+        warn!(
+            "Too many GpuClippingPlaneRanges entities, at most {MAX_CLIPPING_PLANES} are supported"
+        );
     }
     clipping_plane_uniform.set(gpu_planes);
 }

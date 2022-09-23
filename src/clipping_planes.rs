@@ -29,6 +29,9 @@ pub(crate) struct GpuClippingPlaneRange {
 
 #[derive(Default, ShaderType)]
 pub(crate) struct GpuClippingPlaneRanges {
-    pub ranges: [GpuClippingPlaneRange; 3],
+    pub ranges: [GpuClippingPlaneRange; MAX_CLIPPING_PLANES],
     pub num_ranges: u32,
 }
+
+/// The clipping shader is `O(planes * cuboids)`, so we set a reasonable limit.
+pub const MAX_CLIPPING_PLANES: usize = 16;
