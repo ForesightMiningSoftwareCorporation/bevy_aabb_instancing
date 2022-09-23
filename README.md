@@ -5,7 +5,7 @@
 
 Render millions of AABBs every frame with an instancing renderer.
 
-![Example](https://raw.githubusercontent.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/main/examples/wave.png)
+![Example](https://raw.githubusercontent.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/main/examples/scalar.png)
 
 ## Demo
 
@@ -33,3 +33,5 @@ Foresight Mining Software Corporation.
 <img
 src="https://user-images.githubusercontent.com/2632925/151242316-db3455d1-4934-4374-8369-1818daf512dd.png"
 alt="Foresight Mining Software Corporation" width="480">
+
+License: Apache-2.0
