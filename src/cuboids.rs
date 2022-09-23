@@ -58,7 +58,7 @@ impl Cuboid {
 
     #[inline]
     pub fn set_depth_bias(&mut self, bias: u8) {
-        self.meta_bits &= !((u8::MAX as u32) << 8); // clear
+        self.meta_bits &= !0xFF00; // clear
         self.meta_bits |= (bias as u32) << 8; // set
     }
 }
