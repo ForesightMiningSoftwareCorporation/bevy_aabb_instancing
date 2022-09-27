@@ -14,8 +14,10 @@
 //! # Features
 //!
 //! - vertex pulling renderer
-//! - cuboid outlining
+//! - cuboid edge shading
+//! - edge-only wireframes
 //! - clipping planes
+//! - multiple color modes: RGB and Linear-Range Scalar
 //! - depth jitter to counteract z-fighting of coplanar cuboids
 //!
 //! # License
