@@ -4,7 +4,7 @@ use bevy::{prelude::*, render::render_resource::ShaderType};
 ///
 /// The plane origin and normal will be extracted from the [`GlobalTransform`],
 /// assuming normal axis is pointing
-#[derive(Clone, Component, ShaderType)]
+#[derive(Clone, Component, Debug, ShaderType)]
 pub struct ClippingPlaneRange {
     /// The minimum (signed) distance from a visible cuboid's centroid to the plane.
     pub min_sdist: f32,
