@@ -44,9 +44,9 @@ struct ScalarHueColorOptions {
 
 struct ColorOptions {
     color_mode: u32,
+    wireframe: u32, // Any nonzero value means "on".
     _pad0: u32,
     _pad1: u32,
-    _pad2: u32,
     scalar_hue: ScalarHueColorOptions,
 }
 
@@ -238,8 +238,16 @@ fn fragment(in: FragmentInput) -> FragmentOutput {
     let screen_derivative = fwidth(in.face_center_to_fragment);
     let step = smoothstep(vec2<f32>(0.0), 2.0 * screen_derivative, dist_to_edge);
     let min_step = min(step.x, step.y);
-    let edge_factor = mix(0.5, 1.0, min_step);
-    out.color *= edge_factor;
+
+    if color_options.wireframe != 0u {
+        let edge_factor = mix(0.0, 1.0, min_step);
+        if edge_factor > 0.99999 {
+            discard;
+        }
+    } else {
+        let edge_factor = mix(0.5, 1.0, min_step);
+        out.color *= edge_factor;
+    }
 
     #endif
 

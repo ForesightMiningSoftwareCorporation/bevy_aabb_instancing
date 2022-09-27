@@ -28,6 +28,7 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
             hue_slope: -300.0,
         },
         color_mode: COLOR_MODE_SCALAR_HUE,
+        wireframe: 0,
     });
 
     const PATCHES_PER_DIM: usize = 20;
