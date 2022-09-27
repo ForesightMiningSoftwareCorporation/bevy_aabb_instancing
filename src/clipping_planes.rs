@@ -28,7 +28,7 @@ pub struct ClippingPlaneBundle {
     pub transform: TransformBundle,
 }
 
-#[derive(Clone, Component, Default, ShaderType)]
+#[derive(Clone, Component, Debug, Default, ShaderType)]
 pub(crate) struct GpuClippingPlaneRange {
     pub origin: Vec3,
     pub unit_normal: Vec3,
@@ -36,7 +36,7 @@ pub(crate) struct GpuClippingPlaneRange {
     pub max_sdist: f32,
 }
 
-#[derive(Default, ShaderType)]
+#[derive(Debug, Default, ShaderType)]
 pub(crate) struct GpuClippingPlaneRanges {
     pub ranges: [GpuClippingPlaneRange; MAX_CLIPPING_PLANES],
     pub num_ranges: u32,

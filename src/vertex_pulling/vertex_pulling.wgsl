@@ -58,7 +58,7 @@ struct ClippingPlaneRange {
 }
 
 struct ClippingPlaneRanges {
-    ranges: array<ClippingPlaneRange, 3>,
+    ranges: array<ClippingPlaneRange, 16>,
     num_ranges: u32,
 }
 
