@@ -86,7 +86,7 @@ pub(crate) fn extract_clipping_planes(
         let (_, rotation, translation) = transform.to_scale_rotation_translation();
         gpu_planes.ranges[gpu_planes.num_ranges as usize] = GpuClippingPlaneRange {
             origin: translation,
-            unit_normal: rotation * Vec3::Y,
+            unit_normal: rotation * Vec3::X,
             min_sdist: range.min_sdist,
             max_sdist: range.max_sdist,
         };
