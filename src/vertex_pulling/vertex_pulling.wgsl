@@ -190,9 +190,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     out.clip_position = view.view_proj * world_position;
 
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
-    let depth_bias_eps = 0.000004;
-    let depth_bias_int = (cuboid.meta_bits >> 8u) & 0xFFu;
-    out.clip_position.z *= 1.0 + f32(depth_bias_int) * depth_bias_eps;
+    let depth_bias_eps = 0.00000008;
+    let depth_bias_int = i32(cuboid.meta_bits >> 16u) - i32(1u << 15u);
+    out.clip_position.w *= 1.0 + f32(depth_bias_int) * depth_bias_eps;
 
     #ifdef OUTLINES
 

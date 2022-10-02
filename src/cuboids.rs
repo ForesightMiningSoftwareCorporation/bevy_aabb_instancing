@@ -12,10 +12,10 @@ pub type Color = u32;
 /// Metadata encoded in 32 bits:
 ///
 /// - `0x000000FF` = 0 for visible or 1 for invisible
-/// - `0x0000FF00` = depth bias (u8)
+/// - `0x0000FF00` = unused
+/// - `0xFFFF0000` = depth bias (u16)
 ///   - Multiplies the depth of each cuboid vertex by `1 + bias * eps` where
-///     `eps = 4e-6`. This can be used with random biases to avoid Z-fighting.
-/// - `0xFFFF0000` = unused
+///     `eps = 8e-8`. This can be used with random biases to avoid Z-fighting.
 pub type MetaBits = u32;
 
 /// An axis-aligned box, extending from `minimum` to `maximum`.
@@ -29,7 +29,7 @@ pub struct Cuboid {
 }
 
 impl Cuboid {
-    pub fn new(minimum: Vec3, maximum: Vec3, color: u32, visible: bool, depth_bias: u8) -> Self {
+    pub fn new(minimum: Vec3, maximum: Vec3, color: u32, visible: bool, depth_bias: u16) -> Self {
         assert_eq!(std::mem::size_of::<Cuboid>(), 32);
         let mut me = Self {
             minimum,
@@ -57,9 +57,9 @@ impl Cuboid {
     }
 
     #[inline]
-    pub fn set_depth_bias(&mut self, bias: u8) {
-        self.meta_bits &= !0xFF00; // clear
-        self.meta_bits |= (bias as u32) << 8; // set
+    pub fn set_depth_bias(&mut self, bias: u16) {
+        self.meta_bits &= !0xFFFF0000; // clear
+        self.meta_bits |= (bias as u32) << 16; // set
     }
 }
 
