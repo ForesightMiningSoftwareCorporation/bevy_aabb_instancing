@@ -186,13 +186,15 @@ fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     );
     let model_position = cube_corner * cuboid.max + (1.0 - cube_corner) * cuboid.min;
     let world_position = transform.m * vec4<f32>(model_position, 1.0);
+    let ndc_position = view.view_proj * world_position;
 
-    out.clip_position = view.view_proj * world_position;
+    out.clip_position = ndc_position;
 
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
     let depth_bias_eps = 0.00000008;
     let depth_bias_int = i32(cuboid.meta_bits >> 16u) - i32(1u << 15u);
-    out.clip_position.w *= 1.0 + f32(depth_bias_int) * depth_bias_eps;
+    let nudge_z = (ndc_position.z / ndc_position.w) * (1.0 + f32(depth_bias_int) * depth_bias_eps);
+    out.clip_position.z = nudge_z * ndc_position.w;
 
     #ifdef OUTLINES
 
