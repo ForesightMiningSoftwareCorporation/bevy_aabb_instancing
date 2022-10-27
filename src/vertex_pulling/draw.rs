@@ -1,13 +1,12 @@
 use super::{
-    cuboid_cache::CuboidBufferCache,
-    index_buffer::{num_indices_for_cuboids, CuboidsIndexBuffer},
-    pipeline::CuboidsPipeline,
+    cuboid_cache::CuboidBufferCache, index_buffer::CuboidsIndexBuffer, pipeline::CuboidsPipeline,
 };
 
 use bevy::{
     ecs::system::{lifetimeless::*, SystemParamItem},
     prelude::*,
     render::{
+        render_asset::RenderAssets,
         render_phase::{
             EntityRenderCommand, PhaseItem, RenderCommand, RenderCommandResult, TrackedRenderPass,
         },
@@ -163,23 +162,27 @@ impl<const I: usize> EntityRenderCommand for SetGpuCuboidBuffersBindGroup<I> {
 pub(crate) struct DrawVertexPulledCuboids;
 
 impl EntityRenderCommand for DrawVertexPulledCuboids {
-    type Param = (SRes<CuboidBufferCache>, SRes<CuboidsIndexBuffer>);
+    type Param = (
+        SRes<CuboidBufferCache>,
+        SRes<RenderAssets<CuboidsIndexBuffer>>,
+    );
 
     #[inline]
     fn render<'w>(
         _view: Entity,
         item: Entity,
-        (buffer_cache, index_buffer): SystemParamItem<'w, '_, Self::Param>,
+        (buffer_cache, index_buffers): SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
+        use super::index_buffer::{CUBE_INDICES, CUBE_INDICES_HANDLE};
         let entry = buffer_cache.into_inner().entries.get(&item).unwrap();
         let num_cuboids = entry.instance_buffer.get().len().try_into().unwrap();
-        pass.set_index_buffer(
-            index_buffer.into_inner().buffer().unwrap().slice(..),
-            0,
-            IndexFormat::Uint32,
-        );
-        pass.draw_indexed(0..num_indices_for_cuboids(1), 0, 0..num_cuboids);
+        let index_buffer = index_buffers
+            .into_inner()
+            .get(&CUBE_INDICES_HANDLE.typed())
+            .unwrap();
+        pass.set_index_buffer(index_buffer.slice(..), 0, IndexFormat::Uint32);
+        pass.draw_indexed(0..(CUBE_INDICES.len() as u32), 0, 0..num_cuboids);
         RenderCommandResult::Success
     }
 }

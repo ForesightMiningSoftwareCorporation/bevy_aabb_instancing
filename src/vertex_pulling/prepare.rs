@@ -1,6 +1,5 @@
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
-use super::index_buffer::CuboidsIndexBuffer;
 use super::pipeline::CuboidsPipeline;
 use crate::cuboids::CuboidsTransform;
 use crate::{ColorOptions, GpuClippingPlaneRanges};
@@ -60,15 +59,6 @@ pub(crate) fn prepare_auxiliary_bind_group(
             ],
         }));
     }
-}
-
-pub(crate) fn prepare_cuboids_index_buffer(
-    render_device: Res<RenderDevice>,
-    render_queue: Res<RenderQueue>,
-    mut index_buffer: ResMut<CuboidsIndexBuffer>,
-) {
-    // Values already pushed in extract stage.
-    index_buffer.write_buffer(&render_device, &render_queue);
 }
 
 pub(crate) fn prepare_cuboid_transforms(

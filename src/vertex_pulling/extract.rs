@@ -1,5 +1,4 @@
 use super::cuboid_cache::CuboidBufferCache;
-use super::index_buffer::CuboidsIndexBuffer;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
 use crate::ColorOptions;
@@ -24,7 +23,6 @@ pub(crate) fn extract_cuboids(
     color_options: Extract<Res<ColorOptionsMap>>,
     mut color_options_uniforms: ResMut<DynamicUniformBuffer<ColorOptions>>,
     mut cuboid_buffers: ResMut<CuboidBufferCache>,
-    mut index_buffer: ResMut<CuboidsIndexBuffer>,
     mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
 ) {
     transform_uniforms.clear();
@@ -69,8 +67,6 @@ pub(crate) fn extract_cuboids(
         entry.keep_alive = true;
         entry.position = transform.position();
         entry.transform_index = transform_uniforms.push(transform);
-
-        index_buffer.grow_to_fit_num_cuboids(cuboids.instances.len().try_into().unwrap());
     }
 
     cuboid_buffers.cull_entities();
