@@ -173,14 +173,13 @@ impl EntityRenderCommand for DrawVertexPulledCuboids {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let entry = buffer_cache.into_inner().entries.get(&item).unwrap();
-        let num_indices =
-            num_indices_for_cuboids(entry.instance_buffer.get().len().try_into().unwrap());
+        let num_cuboids = entry.instance_buffer.get().len().try_into().unwrap();
         pass.set_index_buffer(
             index_buffer.into_inner().buffer().unwrap().slice(..),
             0,
             IndexFormat::Uint32,
         );
-        pass.draw_indexed(0..num_indices, 0, 0..1);
+        pass.draw_indexed(0..num_indices_for_cuboids(1), 0, 0..num_cuboids);
         RenderCommandResult::Success
     }
 }

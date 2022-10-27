@@ -110,10 +110,9 @@ fn discard_vertex() -> VertexOutput {
 }
 
 @vertex
-fn vertex(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
+fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) instance_index: u32) -> VertexOutput {
     var out: VertexOutput;
 
-    let instance_index = vertex_index >> 5u;
     let cuboid = cuboids.data[instance_index];
 
     // Check visibility mask.
