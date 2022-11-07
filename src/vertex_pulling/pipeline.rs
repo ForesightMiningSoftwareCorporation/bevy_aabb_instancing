@@ -128,11 +128,18 @@ impl FromWorld for CuboidsPipeline {
                 shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
                 shader_defs: shader_defs.fragment.clone(),
                 entry_point: "fragment".into(),
-                targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::bevy_default(),
-                    blend: Some(BlendState::REPLACE),
-                    write_mask: ColorWrites::ALL,
-                })],
+                targets: vec![
+                    Some(ColorTargetState {
+                        format: TextureFormat::bevy_default(),
+                        blend: Some(BlendState::REPLACE),
+                        write_mask: ColorWrites::ALL,
+                    }),
+                    Some(ColorTargetState {
+                        format: TextureFormat::Rg32Uint,
+                        blend: None,
+                        write_mask: ColorWrites::RED | ColorWrites::GREEN,
+                    }),
+                ],
             }),
             primitive: PrimitiveState {
                 front_face: FrontFace::Ccw,
