@@ -57,15 +57,15 @@ pub fn prepare_view_targets(
                         TextureDescriptor {
                             label: Some("g_buffer_entity_instance_id_attachment"),
                             size: Extent3d {
-                                width: target_size.x,
-                                height: target_size.y,
+                                width: 1024,
+                                height: 1024,
                                 depth_or_array_layers: 1,
                             },
-                            mip_level_count: 1,
+                            mip_level_count: 8,
                             sample_count: 1,
                             dimension: TextureDimension::D2,
-                            format: TextureFormat::Rg32Uint,
-                            usage: TextureUsages::RENDER_ATTACHMENT,
+                            format: TextureFormat::Depth32Float,
+                            usage: TextureUsages::TEXTURE_BINDING,
                         },
                     )
                 });

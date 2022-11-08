@@ -6,6 +6,7 @@ use super::prepare::{
     prepare_auxiliary_bind_group, prepare_clipping_planes, prepare_color_options,
     prepare_cuboid_transforms, prepare_cuboids, prepare_cuboids_view_bind_group,
 };
+use super::primitive_visibility;
 use super::queue::queue_cuboids;
 use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::cuboids::CuboidsTransform;
@@ -33,6 +34,10 @@ impl Plugin for VertexPullingRenderPlugin {
         app.world.resource_mut::<Assets<Shader>>().set_untracked(
             VERTEX_PULLING_SHADER_HANDLE,
             Shader::from_wgsl(include_str!("vertex_pulling.wgsl")),
+        );
+        app.world.resource_mut::<Assets<Shader>>().set_untracked(
+            super::primitive_visibility::VisibilityCounterNode::VISIBILITY_COUNTING_SHADER_HANDLE,
+            Shader::from_wgsl(include_str!("visibility_counting.wgsl")),
         );
         {
             use super::index_buffer::{CuboidsIndexBuffer, CUBE_INDICES_HANDLE};
@@ -66,6 +71,7 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<TransformsMeta>()
             .init_resource::<UniformBuffer<GpuClippingPlaneRanges>>()
             .init_resource::<ViewMeta>()
+            .init_resource::<primitive_visibility::VisibilityCounterPipeline>()
             .add_system_to_stage(RenderStage::Extract, extract_cuboids)
             .add_system_to_stage(RenderStage::Extract, extract_clipping_planes)
             .add_system_to_stage(RenderStage::Prepare, prepare_color_options)
@@ -86,17 +92,38 @@ impl Plugin for VertexPullingRenderPlugin {
             // ViewUniforms resource is not ready until after prepare phase;
             // need system order/label exported from bevy
             .add_system_to_stage(RenderStage::Queue, prepare_cuboids_view_bind_group)
-            .add_system_to_stage(RenderStage::Queue, queue_cuboids);
+            .add_system_to_stage(RenderStage::Queue, queue_cuboids)
+            .add_system_to_stage(RenderStage::Queue, primitive_visibility::queue_bind_group);
 
-        let pass_node_3d = super::graph_node::MainPass3dNode::new(&mut render_app.world);
+        // let pass_node_3d = super::graph_node::MainPass3dNode::new(&mut render_app.world);
+        let visibility_node = primitive_visibility::VisibilityCounterNode::new(&mut render_app.world);
+
         let mut graph = render_app.world.resource_mut::<RenderGraph>();
         let draw_3d_graph = graph
             .get_sub_graph_mut(bevy::core_pipeline::core_3d::graph::NAME)
             .unwrap();
 
-        draw_3d_graph.add_node(
-            bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
-            pass_node_3d,
+        //draw_3d_graph.add_node(
+        //    bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
+         //   pass_node_3d,
+        //);
+
+        let visibility_counter_node = draw_3d_graph.add_node(
+            primitive_visibility::VisibilityCounterNode::NAME,
+            visibility_node
         );
+        draw_3d_graph.add_node_edge(
+            bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
+            visibility_counter_node,
+        ).unwrap();
+
+        draw_3d_graph
+            .add_slot_edge(
+                draw_3d_graph.input_node().unwrap().id,
+                bevy::core_pipeline::core_3d::graph::input::VIEW_ENTITY,
+                primitive_visibility::VisibilityCounterNode::NAME,
+                primitive_visibility::VisibilityCounterNode::IN_VIEW,
+            )
+            .unwrap();
     }
 }

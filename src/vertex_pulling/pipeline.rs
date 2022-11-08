@@ -134,11 +134,6 @@ impl FromWorld for CuboidsPipeline {
                         blend: Some(BlendState::REPLACE),
                         write_mask: ColorWrites::ALL,
                     }),
-                    Some(ColorTargetState {
-                        format: TextureFormat::Rg32Uint,
-                        blend: None,
-                        write_mask: ColorWrites::RED | ColorWrites::GREEN,
-                    }),
                 ],
             }),
             primitive: PrimitiveState {
