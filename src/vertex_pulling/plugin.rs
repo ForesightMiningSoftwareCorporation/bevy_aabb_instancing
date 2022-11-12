@@ -8,6 +8,7 @@ use super::prepare::{
 };
 use super::primitive_visibility;
 use super::queue::queue_cuboids;
+use super::view::GBuffers;
 use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::cuboids::CuboidsTransform;
 use crate::{ColorOptions, ColorOptionsMap};
@@ -63,6 +64,7 @@ impl Plugin for VertexPullingRenderPlugin {
 
         render_app
             .add_render_command::<Opaque3d, DrawCuboids>()
+            .init_resource::<GBuffers>()
             .init_resource::<AuxiliaryMeta>()
             .init_resource::<CuboidBufferCache>()
             .init_resource::<CuboidsPipeline>()

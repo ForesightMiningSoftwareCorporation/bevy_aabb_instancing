@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
-use bevy::{render::{render_resource::{BindGroupLayout, CachedComputePipelineId, BindGroupLayoutDescriptor, BindGroupLayoutEntry, ShaderStages, BindingType, StorageTextureAccess, TextureFormat, TextureViewDimension, PipelineCache, ComputePipelineDescriptor, BufferBindingType, ComputePassDescriptor, BindGroupDescriptor, BindingResource, BindGroupEntry, BindGroup, BufferBinding, TextureSampleType}, renderer::{RenderDevice, RenderContext}, render_graph::{Node, self, SlotInfo, SlotType, NodeRunError}, view::{ExtractedView, ViewDepthTexture}, camera::ExtractedCamera, render_asset::RenderAssets}, prelude::*, reflect::TypeUuid, ecs::query};
+use bevy::{render::{render_resource::{BindGroupLayout, CachedComputePipelineId, BindGroupLayoutDescriptor, BindGroupLayoutEntry, ShaderStages, BindingType, StorageTextureAccess, TextureFormat, TextureViewDimension, PipelineCache, ComputePipelineDescriptor, BufferBindingType, ComputePassDescriptor, BindGroupDescriptor, BindingResource, BindGroupEntry, BindGroup, BufferBinding, TextureSampleType, SamplerBindingType}, renderer::{RenderDevice, RenderContext}, render_graph::{Node, self, SlotInfo, SlotType, NodeRunError}, view::{ExtractedView, ViewDepthTexture}, camera::ExtractedCamera, render_asset::RenderAssets}, prelude::*, reflect::TypeUuid, ecs::query};
 use bevy::asset::HandleUntyped;
 
-use super::{view::GBuffer, draw::ViewMeta, cuboid_cache::{CachedCuboidBuffers, CuboidBufferCache}};
+use super::{view::{GBuffer, GBuffers}, draw::ViewMeta, cuboid_cache::{CachedCuboidBuffers, CuboidBufferCache}};
 
 pub struct VisibilityCounterNode {
     query: QueryState<
@@ -66,7 +66,7 @@ impl Node for VisibilityCounterNode {
                 pass.set_bind_group(0, &bind_group.0, &[]);
 
                 pass.set_pipeline(init_pipeline);
-                pass.dispatch_workgroups(1024, 1024, 1);
+                pass.dispatch_workgroups(1024 / 8, 1024 / 8, 1);
             }
         Ok(())
     }
@@ -98,11 +98,17 @@ impl FromWorld for VisibilityCounterPipeline {
                         BindGroupLayoutEntry { // The output buffer
                             binding: 1,
                             visibility: ShaderStages::COMPUTE,
-                            ty: BindingType::Texture  {
-                                sample_type: TextureSampleType::Depth,
+                            ty: BindingType::StorageTexture  {
+                                access: StorageTextureAccess::WriteOnly,
+                                format: TextureFormat::R32Float,
                                 view_dimension: TextureViewDimension::D2,
-                                multisampled: false
                             },
+                            count: None,
+                        },
+                        BindGroupLayoutEntry { // The output buffer
+                            binding: 2,
+                            visibility: ShaderStages::COMPUTE,
+                            ty: BindingType::Sampler(SamplerBindingType::Filtering),
                             count: None,
                         }
                     ],
@@ -131,6 +137,7 @@ pub(crate) fn queue_bind_group(
     pipeline: Res<VisibilityCounterPipeline>,
     render_device: Res<RenderDevice>,
     cached_cuboid_buffers: Res<CuboidBufferCache>,
+    gbuffers: Res<GBuffers>,
     query: Query<(Entity, &GBuffer, &ViewDepthTexture)>,
 ) {
     for (entity, gbuffer, depth) in query.iter() {
@@ -144,7 +151,11 @@ pub(crate) fn queue_bind_group(
                 }, // input
                 BindGroupEntry {
                     binding: 1,
-                    resource: BindingResource::TextureView(&gbuffer.entity_instance_id),
+                    resource: BindingResource::TextureView(&gbuffer.mipmap_views[0]),
+                }, // output
+                BindGroupEntry {
+                    binding: 2,
+                    resource: BindingResource::Sampler(&gbuffers.sampler),
                 }, // output
             ],
         });

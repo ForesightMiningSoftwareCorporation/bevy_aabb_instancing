@@ -1,11 +1,13 @@
+use std::num::{NonZeroU128, NonZeroU32};
+
 use bevy::{
-    prelude::{Commands, Component, Entity, Image, Msaa, Query, Res, ResMut, Color},
+    prelude::{Commands, Component, Entity, Image, Msaa, Query, Res, ResMut, Color, FromWorld},
     render::{
         camera::ExtractedCamera,
         render_asset::RenderAssets,
         render_resource::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
-            TextureView, RenderPassColorAttachment, Operations,
+            TextureView, RenderPassColorAttachment, Operations, Texture, TextureViewDescriptor, TextureViewDimension, TextureAspect, Sampler, SamplerDescriptor, FilterMode, CompareFunction,
         },
         renderer::RenderDevice,
         texture::TextureCache,
@@ -14,24 +16,32 @@ use bevy::{
     utils::HashMap,
 };
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct GBuffer {
-    pub entity_instance_id: TextureView,
+    pub hiz_texture: Texture,
+    pub mipmap_views: Vec<TextureView>,
 }
 
-impl GBuffer {
-    pub fn get_color_attachment(&self, ops: Operations<Color>) -> RenderPassColorAttachment {
-        use bevy::render::render_resource::LoadOp;
-        RenderPassColorAttachment {
-            view: &self.entity_instance_id,
-            resolve_target: None,
-            ops: Operations {
-                load: match ops.load {
-                    LoadOp::Clear(color) => LoadOp::Clear(color.into()),
-                    LoadOp::Load => LoadOp::Load,
-                },
-                store: ops.store
-            },
+pub struct GBuffers {
+    buffer: HashMap<Entity, GBuffer>,
+    pub sampler: Sampler
+}
+impl FromWorld for GBuffers {
+    fn from_world(world: &mut bevy::prelude::World) -> Self {
+        let sampler =  world
+        .resource::<RenderDevice>()
+        .create_sampler(&SamplerDescriptor {
+            label: Some("GBuffer Sampler"),
+            mag_filter: FilterMode::Linear,
+            /// How to filter the texture when it needs to be minified (made smaller)
+            min_filter: FilterMode::Linear,
+            /// How to filter between mip map levels
+            mipmap_filter: FilterMode::Nearest,
+            ..Default::default()
+        });
+        Self {
+            buffer: HashMap::default(),
+            sampler
         }
     }
 }
@@ -43,36 +53,41 @@ pub fn prepare_view_targets(
     images: Res<RenderAssets<Image>>,
     msaa: Res<Msaa>,
     render_device: Res<RenderDevice>,
-    mut texture_cache: ResMut<TextureCache>,
     cameras: Query<(Entity, &ExtractedCamera)>,
+    mut buffers: ResMut<GBuffers>
 ) {
-    let mut sampled_textures = HashMap::default();
     for (entity, camera) in &cameras {
-        if let Some(target_size) = camera.physical_target_size {
-            let sampled_texture = sampled_textures
-                .entry(camera.target.clone())
-                .or_insert_with(|| {
-                    texture_cache.get(
-                        &render_device,
-                        TextureDescriptor {
-                            label: Some("g_buffer_entity_instance_id_attachment"),
-                            size: Extent3d {
-                                width: 1024,
-                                height: 1024,
-                                depth_or_array_layers: 1,
-                            },
-                            mip_level_count: 8,
-                            sample_count: 1,
-                            dimension: TextureDimension::D2,
-                            format: TextureFormat::Depth32Float,
-                            usage: TextureUsages::TEXTURE_BINDING,
-                        },
-                    )
-                });
-
-            commands.entity(entity).insert(GBuffer {
-                entity_instance_id: sampled_texture.default_view.clone(),
+        let gbuffer = buffers.buffer
+        .entry(entity)
+        .or_insert_with(|| {
+            let texture = render_device.create_texture(&TextureDescriptor {
+                label: Some("hiz_buffer"),
+                size: Extent3d {
+                    width: 1024,
+                    height: 1024,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 8,
+                sample_count: 1,
+                dimension: TextureDimension::D2,
+                format: TextureFormat::R32Float,
+                usage: TextureUsages::TEXTURE_BINDING | TextureUsages::STORAGE_BINDING,
             });
-        }
+            let mipmap_views = (0..8).map(|i|{
+                texture.create_view(&TextureViewDescriptor {
+                    label: Some(&format!("hiz_buffer_mipmap_level {}", i)),
+                    format: Some(TextureFormat::R32Float),
+                    dimension: Some(TextureViewDimension::D2),
+                    aspect: TextureAspect::All,
+                    base_mip_level: 0,
+                    mip_level_count: Some(NonZeroU32::new(1).unwrap()),
+                    base_array_layer: 0,
+                    array_layer_count: Some(NonZeroU32::new(1).unwrap()),
+                })
+            }).collect();
+            GBuffer { hiz_texture: texture, mipmap_views }
+        });
+
+        commands.entity(entity).insert(gbuffer.clone());
     }
 }
