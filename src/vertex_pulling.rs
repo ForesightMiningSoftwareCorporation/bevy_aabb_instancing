@@ -6,8 +6,8 @@ mod extract;
 mod index_buffer;
 mod pipeline;
 mod prepare;
+mod primitive_visibility;
 mod queue;
 mod view;
-mod primitive_visibility;
 
 pub mod plugin;

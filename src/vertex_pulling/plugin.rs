@@ -40,6 +40,10 @@ impl Plugin for VertexPullingRenderPlugin {
             super::primitive_visibility::VisibilityCounterNode::VISIBILITY_COUNTING_SHADER_HANDLE,
             Shader::from_wgsl(include_str!("visibility_counting.wgsl")),
         );
+        app.world.resource_mut::<Assets<Shader>>().set_untracked(
+            super::primitive_visibility::VisibilityCounterNode::MIPMAP_GEN_HANDLE,
+            Shader::from_wgsl(include_str!("mipmap_gen.wgsl")),
+        );
         {
             use super::index_buffer::{CuboidsIndexBuffer, CUBE_INDICES_HANDLE};
             use bevy::render::render_asset::RenderAssetPlugin;
@@ -84,10 +88,7 @@ impl Plugin for VertexPullingRenderPlugin {
                     .after(prepare_color_options)
                     .after(prepare_clipping_planes),
             )
-            .add_system_to_stage(
-                RenderStage::Prepare,
-                super::view::prepare_view_targets,
-            )
+            .add_system_to_stage(RenderStage::Prepare, super::view::prepare_view_targets)
             .add_system_to_stage(RenderStage::Prepare, prepare_cuboid_transforms)
             .add_system_to_stage(RenderStage::Prepare, prepare_cuboids)
             // HACK: prepare view bind group should happen in prepare phase, but
@@ -98,7 +99,8 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_system_to_stage(RenderStage::Queue, primitive_visibility::queue_bind_group);
 
         // let pass_node_3d = super::graph_node::MainPass3dNode::new(&mut render_app.world);
-        let visibility_node = primitive_visibility::VisibilityCounterNode::new(&mut render_app.world);
+        let visibility_node =
+            primitive_visibility::VisibilityCounterNode::new(&mut render_app.world);
 
         let mut graph = render_app.world.resource_mut::<RenderGraph>();
         let draw_3d_graph = graph
@@ -107,17 +109,19 @@ impl Plugin for VertexPullingRenderPlugin {
 
         //draw_3d_graph.add_node(
         //    bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
-         //   pass_node_3d,
+        //   pass_node_3d,
         //);
 
         let visibility_counter_node = draw_3d_graph.add_node(
             primitive_visibility::VisibilityCounterNode::NAME,
-            visibility_node
+            visibility_node,
         );
-        draw_3d_graph.add_node_edge(
-            bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
-            visibility_counter_node,
-        ).unwrap();
+        draw_3d_graph
+            .add_node_edge(
+                bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
+                visibility_counter_node,
+            )
+            .unwrap();
 
         draw_3d_graph
             .add_slot_edge(
