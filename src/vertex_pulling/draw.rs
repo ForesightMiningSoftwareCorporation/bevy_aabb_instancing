@@ -13,6 +13,7 @@ use bevy::{
         render_resource::{BindGroup, IndexFormat, PipelineCache},
         view::ViewUniformOffset,
     },
+    utils::HashMap,
 };
 
 pub(crate) type DrawCuboids = (
@@ -51,7 +52,7 @@ impl<P: PhaseItem> RenderCommand<P> for SetCuboidsPipeline {
 
 #[derive(Default)]
 pub struct ViewMeta {
-    pub cuboids_view_bind_group: Option<BindGroup>,
+    pub cuboids_view_bind_groups: HashMap<Entity, BindGroup>,
 }
 
 pub(crate) struct SetCuboidsViewBindGroup<const I: usize>;
@@ -66,15 +67,12 @@ impl<const I: usize> EntityRenderCommand for SetCuboidsViewBindGroup<I> {
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let view_uniform_offset = view_query.get(view).unwrap();
-        pass.set_bind_group(
-            I,
-            view_meta
-                .into_inner()
-                .cuboids_view_bind_group
-                .as_ref()
-                .unwrap(),
-            &[view_uniform_offset.offset],
-        );
+        let bind_group = view_meta
+            .into_inner()
+            .cuboids_view_bind_groups
+            .get(&view)
+            .unwrap();
+        pass.set_bind_group(I, bind_group, &[view_uniform_offset.offset]);
 
         RenderCommandResult::Success
     }

@@ -20,6 +20,7 @@ use bevy::{
 #[derive(Component, Clone)]
 pub struct GBuffer {
     pub hiz_texture: Texture,
+    pub mipmap_views_all: TextureView,
     pub mipmap_views: Vec<TextureView>,
 }
 
@@ -86,9 +87,20 @@ pub fn prepare_view_targets(
                     })
                 })
                 .collect();
+            let mipmap_views_all = texture.create_view(&TextureViewDescriptor {
+                label: Some("hiz_buffer_mipmap_all"),
+                format: Some(TextureFormat::R32Float),
+                dimension: Some(TextureViewDimension::D2),
+                aspect: TextureAspect::All,
+                base_mip_level: 0,
+                mip_level_count: Some(NonZeroU32::new(8).unwrap()),
+                base_array_layer: 0,
+                array_layer_count: Some(NonZeroU32::new(1).unwrap()),
+            });
             GBuffer {
                 hiz_texture: texture,
                 mipmap_views,
+                mipmap_views_all,
             }
         });
 

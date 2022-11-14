@@ -81,6 +81,11 @@ struct Transform {
 @group(0) @binding(0)
 var<uniform> view: View;
 
+@group(0) @binding(1)
+var depth_mipmap: texture_2d<f32>;
+
+@group(0) @binding(2) var depth_mipmap_sampler: sampler;
+
 @group(1) @binding(0)
 var<uniform> color_options: ColorOptions;
 
