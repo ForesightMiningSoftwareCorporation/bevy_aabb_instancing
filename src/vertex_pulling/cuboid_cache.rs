@@ -6,7 +6,7 @@ use bevy::{
     utils::HashMap,
 };
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub(crate) struct CuboidBufferCache {
     pub entries: HashMap<Entity, CachedCuboidBuffers>,
 }

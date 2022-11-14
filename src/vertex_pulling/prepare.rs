@@ -1,14 +1,11 @@
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
 use super::pipeline::CuboidsPipeline;
-use crate::cuboids::CuboidsTransform;
-use crate::{ColorOptions, GpuClippingPlaneRanges};
+use super::buffers::*;
 
 use bevy::{
     prelude::*,
     render::{
-        render_resource::DynamicUniformBuffer,
-        render_resource::UniformBuffer,
         render_resource::{BindGroupDescriptor, BindGroupEntry},
         renderer::{RenderDevice, RenderQueue},
         view::ViewUniforms,
@@ -18,7 +15,7 @@ use bevy::{
 pub(crate) fn prepare_clipping_planes(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    mut clipping_plane_uniform: ResMut<UniformBuffer<GpuClippingPlaneRanges>>,
+    mut clipping_plane_uniform: ResMut<UniformBufferOfGpuClippingPlaneRanges>,
 ) {
     // Values already pushed in extract stage.
     clipping_plane_uniform.write_buffer(&render_device, &render_queue);
@@ -27,7 +24,7 @@ pub(crate) fn prepare_clipping_planes(
 pub(crate) fn prepare_color_options(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    mut color_options_uniforms: ResMut<DynamicUniformBuffer<ColorOptions>>,
+    mut color_options_uniforms: ResMut<DynamicUniformBufferOfColorOptions>,
 ) {
     // Values already pushed in extract stage.
     color_options_uniforms.write_buffer(&render_device, &render_queue);
@@ -37,8 +34,8 @@ pub(crate) fn prepare_auxiliary_bind_group(
     pipeline: Res<CuboidsPipeline>,
     render_device: Res<RenderDevice>,
     mut aux_meta: ResMut<AuxiliaryMeta>,
-    clipping_plane_uniform: Res<UniformBuffer<GpuClippingPlaneRanges>>,
-    color_options_uniform: Res<DynamicUniformBuffer<ColorOptions>>,
+    clipping_plane_uniform: Res<UniformBufferOfGpuClippingPlaneRanges>,
+    color_options_uniform: Res<DynamicUniformBufferOfColorOptions>,
 ) {
     if let (Some(color_binding), Some(planes_binding)) = (
         color_options_uniform.binding(),
@@ -66,7 +63,7 @@ pub(crate) fn prepare_cuboid_transforms(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     mut transforms_meta: ResMut<TransformsMeta>,
-    mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
+    mut transform_uniforms: ResMut<DynamicUniformBufferOfCuboidTransforms>,
 ) {
     let write_transform_buffer_span =
         bevy::log::info_span!("prepare_cuboids::write_transform_buffer");
