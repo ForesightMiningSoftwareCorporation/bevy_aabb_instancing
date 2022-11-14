@@ -1,11 +1,10 @@
 use super::cuboid_cache::CuboidBufferCache;
+use super::buffers::*;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
-use crate::ColorOptions;
 use crate::ColorOptionsId;
 use crate::ColorOptionsMap;
 
-use bevy::render::render_resource::{DynamicUniformBuffer, UniformBuffer};
 use bevy::{prelude::*, render::Extract};
 
 #[allow(clippy::type_complexity)]
@@ -21,9 +20,9 @@ pub(crate) fn extract_cuboids(
         )>,
     >,
     color_options: Extract<Res<ColorOptionsMap>>,
-    mut color_options_uniforms: ResMut<DynamicUniformBuffer<ColorOptions>>,
+    mut color_options_uniforms: ResMut<DynamicUniformBufferOfColorOptions>,
     mut cuboid_buffers: ResMut<CuboidBufferCache>,
-    mut transform_uniforms: ResMut<DynamicUniformBuffer<CuboidsTransform>>,
+    mut transform_uniforms: ResMut<DynamicUniformBufferOfCuboidTransforms>,
 ) {
     transform_uniforms.clear();
 
@@ -74,7 +73,7 @@ pub(crate) fn extract_cuboids(
 
 pub(crate) fn extract_clipping_planes(
     clipping_planes: Extract<Query<(&ClippingPlaneRange, &GlobalTransform)>>,
-    mut clipping_plane_uniform: ResMut<UniformBuffer<GpuClippingPlaneRanges>>,
+    mut clipping_plane_uniform: ResMut<UniformBufferOfGpuClippingPlaneRanges>,
 ) {
     let mut iter = clipping_planes.iter();
     let mut gpu_planes = GpuClippingPlaneRanges::default();

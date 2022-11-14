@@ -7,5 +7,6 @@ mod index_buffer;
 mod pipeline;
 mod prepare;
 mod queue;
+mod buffers;
 
 pub mod plugin;
