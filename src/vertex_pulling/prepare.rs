@@ -114,7 +114,6 @@ pub(crate) fn prepare_cuboids(
             entry
                 .instance_buffer
                 .write_buffer(&render_device, &render_queue);
-            println!("Writing buffer");
         });
 
         entry.instance_buffer_bind_group = create_bind_group_span.in_scope(|| {

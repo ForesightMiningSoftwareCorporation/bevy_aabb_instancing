@@ -67,13 +67,13 @@ pub fn prepare_view_targets(
                     height: 1024,
                     depth_or_array_layers: 1,
                 },
-                mip_level_count: 8,
+                mip_level_count: 7,
                 sample_count: 1,
                 dimension: TextureDimension::D2,
                 format: TextureFormat::R32Float,
                 usage: TextureUsages::TEXTURE_BINDING | TextureUsages::STORAGE_BINDING,
             });
-            let mipmap_views = (0..8)
+            let mipmap_views = (0..7)
                 .map(|i| {
                     texture.create_view(&TextureViewDescriptor {
                         label: Some(&format!("hiz_buffer_mipmap_level {}", i)),
@@ -93,7 +93,7 @@ pub fn prepare_view_targets(
                 dimension: Some(TextureViewDimension::D2),
                 aspect: TextureAspect::All,
                 base_mip_level: 0,
-                mip_level_count: Some(NonZeroU32::new(8).unwrap()),
+                mip_level_count: Some(NonZeroU32::new(7).unwrap()),
                 base_array_layer: 0,
                 array_layer_count: Some(NonZeroU32::new(1).unwrap()),
             });

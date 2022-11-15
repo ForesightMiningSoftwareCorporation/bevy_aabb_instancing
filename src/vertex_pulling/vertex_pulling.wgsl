@@ -197,6 +197,43 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
 
     out.clip_position = ndc_position;
 
+
+    let bounding_rect_min = (view.view_proj * vec4<f32>(cuboid.min, 1.0) * 0.5 + 0.5); // range 0-1
+    let bounding_rect_max = (view.view_proj * vec4<f32>(cuboid.max, 1.0) * 0.5 + 0.5); // range 0-1
+    let bounding_rect_size = abs(bounding_rect_max - bounding_rect_min) * 1024.0;
+
+    let lod = 10.0 - ceil(log2(max(bounding_rect_size.x, bounding_rect_size.y)));
+    let lod = u32(max(lod, 8.0)); // we only have 8 lod layers in total
+    let samples = vec4(
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(bounding_rect_min.x, bounding_rect_min.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).x,
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(bounding_rect_min.x, bounding_rect_max.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).x,
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(bounding_rect_max.x, bounding_rect_min.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).x,
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(bounding_rect_max.x, bounding_rect_max.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).x,
+    );
+    let d = max(max(samples.x, samples.y), max(samples.z, samples.w));
+    if d > out.clip_position.z {
+        return discard_vertex();
+    }
+
+
+
+
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
     let depth_bias_eps = 0.00000008;
     let depth_bias_int = i32(cuboid.meta_bits >> 16u) - i32(1u << 15u);
