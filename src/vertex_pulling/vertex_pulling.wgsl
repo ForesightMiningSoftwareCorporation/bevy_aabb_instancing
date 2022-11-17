@@ -21,6 +21,12 @@ fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32>
     return rgb_temp + lightness_match;
 }
 
+fn screen_space_point(view_transform: mat4x4<f32>, pt: vec3<f32>) -> vec3<f32> {
+    let pt = view_transform * vec4<f32>(pt, 1.0);
+    let pt2d = pt.xyz / pt.w;
+    return pt2d;
+}
+
 struct View {
     view_proj: mat4x4<f32>,
     inverse_view_proj: mat4x4<f32>,
@@ -197,63 +203,63 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
 
     out.clip_position = ndc_position;
 
+    let view_transform = view.view_proj * transform.m;
+    var bounding_rect_min = screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z));
 
-    let bounding_rect_min = (view.view_proj * vec4<f32>(cuboid.min, 1.0) * 0.5 + 0.5); // range 0-1
-    let bounding_rect_max = (view.view_proj * vec4<f32>(cuboid.max, 1.0) * 0.5 + 0.5); // range 0-1
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z)));
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.min.y, cuboid.min.z)));
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.min.z)));
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.max.z)));
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.min.z)));
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.max.z)));
+    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.max.z)));
+
+    var bounding_rect_max = screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z)));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.min.y, cuboid.min.z)));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.min.z)));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.max.z)));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.min.z)));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.max.z)));
+    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.max.z)));
+
+    let minZ = bounding_rect_min.z;
+
+    let bounding_rect_max = 0.5 * bounding_rect_max + 0.5;
+    let bounding_rect_min = 0.5 * bounding_rect_min + 0.5;
+
     let bounding_rect_size = abs(bounding_rect_max - bounding_rect_min) * 1024.0;
 
-    let lod = 10.0 - ceil(log2(max(bounding_rect_size.x, bounding_rect_size.y)));
-    let lod = u32(max(lod, 8.0)); // we only have 8 lod layers in total
+    let lod = ceil(log2(max(bounding_rect_size.x, bounding_rect_size.y)));
+    let lod = u32(clamp(lod, 0.0, 4.0)); // we only have 8 lod layers in total
+    let lod: u32 = u32(0);
     let samples = vec4(
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_min.x, bounding_rect_min.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
             i32(lod)
         ).x,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_min.x, bounding_rect_max.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
             i32(lod)
         ).x,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_max.x, bounding_rect_min.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
             i32(lod)
         ).x,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_max.x, bounding_rect_max.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
             i32(lod)
         ).x,
     );
-    let d = max(max(samples.x, samples.y), max(samples.z, samples.w));
-    if d > out.clip_position.z {
-        return discard_vertex();
-    }
+    let prevDepth = max(max(samples.x, samples.y), max(samples.z, samples.w));
+    let currentDepth = out.clip_position.z / out.clip_position.w;
 
-
-
-
-    // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
-    let depth_bias_eps = 0.00000008;
-    let depth_bias_int = i32(cuboid.meta_bits >> 16u) - i32(1u << 15u);
-    let nudge_z = (ndc_position.z / ndc_position.w) * (1.0 + f32(depth_bias_int) * depth_bias_eps);
-    out.clip_position.z = nudge_z * ndc_position.w;
-
-    #ifdef OUTLINES
-
-    let centroid_to_corner = 2.0 * (cube_corner - vec3<f32>(0.5));
-    let face = (vertex_index >> 3u) & 0x3u;
-    if face == 0u {
-        out.face_center_to_corner = centroid_to_corner.xy;
-    } else if face == 1u {
-        out.face_center_to_corner = centroid_to_corner.xz;
-    } else {
-        out.face_center_to_corner = centroid_to_corner.yz;
-    }
-
-    #endif
-
+    let other = view_transform * vec4<f32>(cuboid_center, 1.0);
+    out.color = vec4(0.0, (other.x / other.w - out.clip_position.x / out.clip_position.w) * 1.0, 0.0, 1.0);
     return out;
 }
 

@@ -63,6 +63,8 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
         }
     }
 
+
+
     commands
         .spawn_bundle(Camera3dBundle::default())
         .insert_bundle(FpsCameraBundle::new(
@@ -70,14 +72,14 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
                 translate_sensitivity: 2.0,
                 ..Default::default()
             },
-            Vec3::new(0.0, 100.0, 0.0),
-            Vec3::new(100.0, 0.0, 100.0),
+            Vec3::new(50.0, 20.0, 0.0),
+            Vec3::new(0.0, 0.0, 0.0),
         ));
 }
 
 fn update_scalar_hue_options(time: Res<Time>, mut color_options_map: ResMut<ColorOptionsMap>) {
     let options = color_options_map.get_mut(ColorOptionsId(1));
     let tv = 1000.0 * (time.seconds_since_startup().sin() + 1.0) as f32;
-    options.scalar_hue.max_visible = tv;
-    options.scalar_hue.clamp_max = tv;
+    //options.scalar_hue.max_visible = tv;
+    //options.scalar_hue.clamp_max = tv;
 }
