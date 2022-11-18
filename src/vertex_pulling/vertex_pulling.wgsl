@@ -223,43 +223,56 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.max.z)));
     bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.max.z)));
 
-    let minZ = bounding_rect_min.z;
+    let maxZ = bounding_rect_max.z;
 
     let bounding_rect_max = 0.5 * bounding_rect_max + 0.5;
+    let bounding_rect_max = clamp(bounding_rect_max, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
     let bounding_rect_min = 0.5 * bounding_rect_min + 0.5;
+    let bounding_rect_min = clamp(bounding_rect_min, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
 
     let bounding_rect_size = abs(bounding_rect_max - bounding_rect_min) * 1024.0;
 
     let lod = ceil(log2(max(bounding_rect_size.x, bounding_rect_size.y)));
-    let lod = u32(clamp(lod, 0.0, 4.0)); // we only have 8 lod layers in total
-    let lod: u32 = u32(0);
+    let lod = u32(clamp(lod, 0.0, 6.0)); // we only have 8 lod layers in total
     let samples = vec4(
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
+            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod)),
             i32(lod)
         ).x,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
+            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod)),
             i32(lod)
         ).x,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
+            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod)),
             i32(lod)
         ).x,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod) + vec2<f32>(0.5, 0.5)),
+            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod)),
             i32(lod)
         ).x,
     );
-    let prevDepth = max(max(samples.x, samples.y), max(samples.z, samples.w));
+    let prevDepth = min(min(samples.x, samples.y), min(samples.z, samples.w));
     let currentDepth = out.clip_position.z / out.clip_position.w;
 
+    var aa = ((out.clip_position.xy / out.clip_position.w) * 0.5 + 0.5);
+    aa.y = 1.0 - aa.y;
+    let prevDepth = textureLoad(
+            depth_mipmap,
+            vec2<i32>(aa * 1024.0),
+            0
+        ).x;
+
     let other = view_transform * vec4<f32>(cuboid_center, 1.0);
-    out.color = vec4(0.0, (other.x / other.w - out.clip_position.x / out.clip_position.w) * 1.0, 0.0, 1.0);
+
+    if maxZ < prevDepth {
+    out.color = vec4(0.0, 1.0, 0.0, 1.0);
+    }
+
     return out;
 }
 
