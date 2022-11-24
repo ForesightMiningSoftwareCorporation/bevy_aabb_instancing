@@ -65,7 +65,7 @@ pub struct ScalarHueColorOptions {
 
 /// Resource used to create and modify a set of [`ColorOptions`] that are
 /// automatically synced to shader uniforms.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Resource)]
 pub struct ColorOptionsMap {
     // Consumed every frame during GPU buffering.
     options: Vec<ColorOptions>,

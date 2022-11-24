@@ -50,7 +50,7 @@ impl<P: PhaseItem> RenderCommand<P> for SetCuboidsPipeline {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct ViewMeta {
     pub cuboids_view_bind_groups: HashMap<Entity, BindGroup>,
 }
@@ -79,7 +79,7 @@ impl<const I: usize> EntityRenderCommand for SetCuboidsViewBindGroup<I> {
 }
 
 /// Hold the bind group for color options and clipping planes.
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct AuxiliaryMeta {
     pub bind_group: Option<BindGroup>,
 }
@@ -108,7 +108,7 @@ impl<const I: usize> EntityRenderCommand for SetAuxBindGroup<I> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Resource)]
 pub struct TransformsMeta {
     pub transform_buffer_bind_group: Option<BindGroup>,
 }

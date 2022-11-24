@@ -9,5 +9,6 @@ mod prepare;
 mod primitive_visibility;
 mod queue;
 mod view;
+mod buffers;
 
 pub mod plugin;

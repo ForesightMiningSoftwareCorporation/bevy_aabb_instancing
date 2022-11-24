@@ -21,6 +21,7 @@ use bevy::{
     },
 };
 
+#[derive(Resource)]
 pub(crate) struct CuboidsPipeline {
     pub pipeline_id: CachedRenderPipelineId,
     pub aux_layout: BindGroupLayout,
@@ -196,7 +197,7 @@ impl FromWorld for CuboidsPipeline {
     }
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Resource)]
 pub(crate) struct CuboidsShaderDefs {
     pub vertex: Vec<String>,
     pub fragment: Vec<String>,

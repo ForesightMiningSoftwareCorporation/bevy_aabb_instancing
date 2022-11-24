@@ -12,13 +12,14 @@ use super::view::GBuffers;
 use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::cuboids::CuboidsTransform;
 use crate::{ColorOptions, ColorOptionsMap};
+use super::buffers::*;
+
 
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
 use bevy::render::render_graph::RenderGraph;
 use bevy::render::{
     render_phase::AddRenderCommand,
-    render_resource::{DynamicUniformBuffer, UniformBuffer},
     RenderApp, RenderStage,
 };
 
@@ -72,10 +73,10 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<AuxiliaryMeta>()
             .init_resource::<CuboidBufferCache>()
             .init_resource::<CuboidsPipeline>()
-            .init_resource::<DynamicUniformBuffer<ColorOptions>>()
-            .init_resource::<DynamicUniformBuffer<CuboidsTransform>>()
+            .init_resource::<DynamicUniformBufferOfColorOptions>()
+            .init_resource::<DynamicUniformBufferOfCuboidTransforms>()
             .init_resource::<TransformsMeta>()
-            .init_resource::<UniformBuffer<GpuClippingPlaneRanges>>()
+            .init_resource::<UniformBufferOfGpuClippingPlaneRanges>()
             .init_resource::<ViewMeta>()
             .init_resource::<primitive_visibility::VisibilityCounterPipeline>()
             .add_system_to_stage(RenderStage::Extract, extract_cuboids)

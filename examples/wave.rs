@@ -58,16 +58,16 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
             let cuboids = Cuboids::new(instances);
             let aabb = cuboids.aabb();
             commands
-                .spawn_bundle(SpatialBundle::default())
-                .insert_bundle((cuboids, aabb, color_options_id));
+                .spawn(SpatialBundle::default())
+                .insert((cuboids, aabb, color_options_id));
         }
     }
 
 
 
     commands
-        .spawn_bundle(Camera3dBundle::default())
-        .insert_bundle(FpsCameraBundle::new(
+        .spawn(Camera3dBundle::default())
+        .insert(FpsCameraBundle::new(
             FpsCameraController {
                 translate_sensitivity: 2.0,
                 ..Default::default()
@@ -79,7 +79,7 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
 
 fn update_scalar_hue_options(time: Res<Time>, mut color_options_map: ResMut<ColorOptionsMap>) {
     let options = color_options_map.get_mut(ColorOptionsId(1));
-    let tv = 1000.0 * (time.seconds_since_startup().sin() + 1.0) as f32;
-    //options.scalar_hue.max_visible = tv;
-    //options.scalar_hue.clamp_max = tv;
+    let tv = 1000.0 * (time.elapsed_seconds().sin() + 1.0);
+    options.scalar_hue.max_visible = tv;
+    options.scalar_hue.clamp_max = tv;
 }
