@@ -204,25 +204,25 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     out.clip_position = ndc_position;
 
     let view_transform = view.view_proj * transform.m;
-    var bounding_rect_min = screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z));
 
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z)));
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.min.y, cuboid.min.z)));
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.min.z)));
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.max.z)));
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.min.z)));
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.max.z)));
-    bounding_rect_min = min(bounding_rect_min, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.max.z)));
+    let pos_infinity = bitcast<f32>(0x7f800000u);
+    let neg_infinity = bitcast<f32>(0xff800000u);
 
-    var bounding_rect_max = screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.min.z)));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.min.y, cuboid.min.z)));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.min.z)));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.min.y, cuboid.max.z)));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.min.z)));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.min.x, cuboid.max.y, cuboid.max.z)));
-    bounding_rect_max = max(bounding_rect_max, screen_space_point(view_transform, vec3<f32>(cuboid.max.x, cuboid.max.y, cuboid.max.z)));
+    var bounding_rect_min = vec3<f32>(pos_infinity, pos_infinity, pos_infinity);
+    var bounding_rect_max = vec3<f32>(neg_infinity, neg_infinity, neg_infinity);
+    for (var i = 0u; i < 8u; i++) {
+        let cube_corner = vec3<f32>(
+            f32(i & 0x1u),
+            f32((i & 0x2u) >> 1u),
+            f32((i & 0x4u) >> 2u),
+        );
+        let test_point = cube_corner * cuboid.max + (1.0 - cube_corner) * cuboid.min;
+        let pt = view_transform * vec4<f32>(test_point, 1.0);
+        let pt = pt.xyz / pt.w;
+        bounding_rect_min = min(bounding_rect_min, pt);
+        bounding_rect_max = max(bounding_rect_max, pt);
 
+    }
     let maxZ = bounding_rect_max.z;
 
     let bounding_rect_max = 0.5 * bounding_rect_max + 0.5;
@@ -258,7 +258,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     );
     let prevDepth = min(min(samples.x, samples.y), min(samples.z, samples.w));
     if maxZ < prevDepth {
-        out.color = vec4(0.0, 1.0, 0.0, 1.0);
+        return discard_vertex();
     }
     return out;
 }
