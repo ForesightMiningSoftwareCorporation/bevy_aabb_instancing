@@ -260,6 +260,27 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     if maxZ < prevDepth {
         return discard_vertex();
     }
+
+    // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
+    let depth_bias_eps = 0.00000008;
+    let depth_bias_int = i32(cuboid.meta_bits >> 16u) - i32(1u << 15u);
+    let nudge_z = (ndc_position.z / ndc_position.w) * (1.0 + f32(depth_bias_int) * depth_bias_eps);
+    out.clip_position.z = nudge_z * ndc_position.w;
+
+    #ifdef OUTLINES
+
+    let centroid_to_corner = 2.0 * (cube_corner - vec3<f32>(0.5));
+    let face = (vertex_index >> 3u) & 0x3u;
+    if face == 0u {
+        out.face_center_to_corner = centroid_to_corner.xy;
+    } else if face == 1u {
+        out.face_center_to_corner = centroid_to_corner.xz;
+    } else {
+        out.face_center_to_corner = centroid_to_corner.yz;
+    }
+
+    #endif
+
     return out;
 }
 
