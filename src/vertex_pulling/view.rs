@@ -1,7 +1,7 @@
 use std::num::{NonZeroU128, NonZeroU32};
 
 use bevy::{
-    prelude::{Color, Commands, Component, Entity, FromWorld, Image, Msaa, Query, Res, ResMut},
+    prelude::{Color, Commands, Component, Entity, FromWorld, Image, Msaa, Query, Res, ResMut, Resource},
     render::{
         camera::ExtractedCamera,
         render_asset::RenderAssets,
@@ -24,6 +24,7 @@ pub struct GBuffer {
     pub mipmap_views: Vec<TextureView>,
 }
 
+#[derive(Resource)]
 pub struct GBuffers {
     buffer: HashMap<Entity, GBuffer>,
     pub sampler: Sampler,

@@ -106,6 +106,7 @@ impl Node for VisibilityCounterNode {
     }
 }
 
+#[derive(Resource)]
 pub struct VisibilityCounterPipeline {
     texture_bind_group_layout: BindGroupLayout,
     mipmap_bind_group_layout: BindGroupLayout,
