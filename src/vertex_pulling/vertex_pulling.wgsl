@@ -257,22 +257,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
         ).x,
     );
     let prevDepth = min(min(samples.x, samples.y), min(samples.z, samples.w));
-    let currentDepth = out.clip_position.z / out.clip_position.w;
-
-    var aa = ((out.clip_position.xy / out.clip_position.w) * 0.5 + 0.5);
-    aa.y = 1.0 - aa.y;
-    let prevDepth = textureLoad(
-            depth_mipmap,
-            vec2<i32>(aa * 1024.0),
-            0
-        ).x;
-
-    let other = view_transform * vec4<f32>(cuboid_center, 1.0);
-
     if maxZ < prevDepth {
-    out.color = vec4(0.0, 1.0, 0.0, 1.0);
+        out.color = vec4(0.0, 1.0, 0.0, 1.0);
     }
-
     return out;
 }
 
