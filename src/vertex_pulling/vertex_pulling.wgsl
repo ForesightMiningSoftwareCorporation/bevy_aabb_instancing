@@ -108,10 +108,8 @@ struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) color: vec4<f32>,
 
-    @location(1) instance_id: u32,
-
     #ifdef OUTLINES
-    @location(2) face_center_to_corner: vec2<f32>,
+    @location(1) face_center_to_corner: vec2<f32>,
     #endif
 }
 
@@ -125,7 +123,6 @@ fn discard_vertex() -> VertexOutput {
 @vertex
 fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) instance_index: u32) -> VertexOutput {
     var out: VertexOutput;
-    out.instance_id = instance_index;
 
     let cuboid = cuboids.data[instance_index];
 
@@ -287,11 +284,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
 struct FragmentInput {
     @location(0) color: vec4<f32>,
 
-    @location(1) instance_id: u32,
-
     #ifdef OUTLINES
     // "normalized face coordinates" in [-1, 1]^2
-    @location(2) face_center_to_fragment: vec2<f32>,
+    @location(1) face_center_to_fragment: vec2<f32>,
     #endif
 }
 
@@ -307,9 +302,6 @@ struct FragmentOutput {
 fn fragment(in: FragmentInput) -> FragmentOutput {
     var out: FragmentOutput;
     out.color = in.color;
-    //out.entity_primitive_id.x = 0;               // entity id
-    out.entity_primitive_id.y = in.instance_id;  // primitive id
-
     #ifdef OUTLINES
 
     let dist_to_edge = vec2<f32>(1.0) - abs(in.face_center_to_fragment);
