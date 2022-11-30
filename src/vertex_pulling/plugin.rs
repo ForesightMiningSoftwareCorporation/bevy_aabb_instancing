@@ -38,11 +38,11 @@ impl Plugin for VertexPullingRenderPlugin {
             Shader::from_wgsl(include_str!("vertex_pulling.wgsl")),
         );
         app.world.resource_mut::<Assets<Shader>>().set_untracked(
-            super::primitive_visibility::VisibilityCounterNode::VISIBILITY_COUNTING_SHADER_HANDLE,
+            super::primitive_visibility::ZMipNode::Z_BUFFER_BLIT_HANDLE,
             Shader::from_wgsl(include_str!("visibility_counting.wgsl")),
         );
         app.world.resource_mut::<Assets<Shader>>().set_untracked(
-            super::primitive_visibility::VisibilityCounterNode::MIPMAP_GEN_HANDLE,
+            super::primitive_visibility::ZMipNode::MIPMAP_GEN_HANDLE,
             Shader::from_wgsl(include_str!("mipmap_gen.wgsl")),
         );
         {
@@ -78,7 +78,7 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<TransformsMeta>()
             .init_resource::<UniformBufferOfGpuClippingPlaneRanges>()
             .init_resource::<ViewMeta>()
-            .init_resource::<primitive_visibility::VisibilityCounterPipeline>()
+            .init_resource::<primitive_visibility::ZMipPipeline>()
             .add_system_to_stage(RenderStage::Extract, extract_cuboids)
             .add_system_to_stage(RenderStage::Extract, extract_clipping_planes)
             .add_system_to_stage(RenderStage::Prepare, prepare_color_options)
@@ -101,7 +101,7 @@ impl Plugin for VertexPullingRenderPlugin {
 
         // let pass_node_3d = super::graph_node::MainPass3dNode::new(&mut render_app.world);
         let visibility_node =
-            primitive_visibility::VisibilityCounterNode::new(&mut render_app.world);
+            primitive_visibility::ZMipNode::new(&mut render_app.world);
 
         let mut graph = render_app.world.resource_mut::<RenderGraph>();
         let draw_3d_graph = graph
@@ -114,7 +114,7 @@ impl Plugin for VertexPullingRenderPlugin {
         //);
 
         let visibility_counter_node = draw_3d_graph.add_node(
-            primitive_visibility::VisibilityCounterNode::NAME,
+            primitive_visibility::ZMipNode::NAME,
             visibility_node,
         );
         draw_3d_graph
@@ -128,8 +128,8 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_slot_edge(
                 draw_3d_graph.input_node().unwrap().id,
                 bevy::core_pipeline::core_3d::graph::input::VIEW_ENTITY,
-                primitive_visibility::VisibilityCounterNode::NAME,
-                primitive_visibility::VisibilityCounterNode::IN_VIEW,
+                primitive_visibility::ZMipNode::NAME,
+                primitive_visibility::ZMipNode::IN_VIEW,
             )
             .unwrap();
     }

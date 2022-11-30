@@ -27,7 +27,7 @@ use super::{
     view::{GBuffer, GBuffers},
 };
 
-pub struct VisibilityCounterNode {
+pub struct ZMipNode {
     query: QueryState<
         (
             &'static ExtractedCamera,
@@ -38,10 +38,10 @@ pub struct VisibilityCounterNode {
         With<ExtractedView>,
     >,
 }
-impl VisibilityCounterNode {
+impl ZMipNode {
     pub const NAME: &'static str = "visibility_counter";
     pub const IN_VIEW: &'static str = "view";
-    pub(crate) const VISIBILITY_COUNTING_SHADER_HANDLE: HandleUntyped =
+    pub(crate) const Z_BUFFER_BLIT_HANDLE: HandleUntyped =
         HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 9911374759819384610);
     pub(crate) const MIPMAP_GEN_HANDLE: HandleUntyped =
         HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 9911374759819384611);
@@ -53,10 +53,10 @@ impl VisibilityCounterNode {
     }
 }
 
-impl Node for VisibilityCounterNode {
+impl Node for ZMipNode {
     fn input(&self) -> Vec<SlotInfo> {
         vec![SlotInfo::new(
-            VisibilityCounterNode::IN_VIEW,
+            ZMipNode::IN_VIEW,
             SlotType::Entity,
         )]
     }
@@ -80,7 +80,7 @@ impl Node for VisibilityCounterNode {
         };
 
         let pipeline_cache = world.resource::<PipelineCache>();
-        let pipeline = world.resource::<VisibilityCounterPipeline>();
+        let pipeline = world.resource::<ZMipPipeline>();
 
         if let Some(init_pipeline) = pipeline_cache.get_compute_pipeline(pipeline.pipeline) {
             if let Some(mipmap_pipeline) =
@@ -107,14 +107,14 @@ impl Node for VisibilityCounterNode {
 }
 
 #[derive(Resource)]
-pub struct VisibilityCounterPipeline {
+pub struct ZMipPipeline {
     texture_bind_group_layout: BindGroupLayout,
     mipmap_bind_group_layout: BindGroupLayout,
     pipeline: CachedComputePipelineId,
     mipmap_pipeline: CachedComputePipelineId,
 }
 
-impl FromWorld for VisibilityCounterPipeline {
+impl FromWorld for ZMipPipeline {
     fn from_world(world: &mut World) -> Self {
         let texture_bind_group_layout =
             world
@@ -194,19 +194,19 @@ impl FromWorld for VisibilityCounterPipeline {
         let pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
             label: None,
             layout: Some(vec![texture_bind_group_layout.clone()]),
-            shader: VisibilityCounterNode::VISIBILITY_COUNTING_SHADER_HANDLE.typed(),
+            shader: ZMipNode::Z_BUFFER_BLIT_HANDLE.typed(),
             shader_defs: vec![],
             entry_point: "main".into(),
         });
         let mipmap_pipeline = pipeline_cache.queue_compute_pipeline(ComputePipelineDescriptor {
             label: None,
             layout: Some(vec![mipmap_bind_group_layout.clone()]),
-            shader: VisibilityCounterNode::MIPMAP_GEN_HANDLE.typed(),
+            shader: ZMipNode::MIPMAP_GEN_HANDLE.typed(),
             shader_defs: vec![],
             entry_point: "main".into(),
         });
 
-        VisibilityCounterPipeline {
+        ZMipPipeline {
             texture_bind_group_layout,
             mipmap_bind_group_layout,
             pipeline,
@@ -222,7 +222,7 @@ struct PrimitiveVisibilityBindGroup {
 }
 pub(crate) fn queue_bind_group(
     mut commands: Commands,
-    pipeline: Res<VisibilityCounterPipeline>,
+    pipeline: Res<ZMipPipeline>,
     render_device: Res<RenderDevice>,
     gbuffers: Res<GBuffers>,
     query: Query<(Entity, &GBuffer, &ViewDepthTexture)>,
