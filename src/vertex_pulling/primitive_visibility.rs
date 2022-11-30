@@ -72,24 +72,23 @@ impl Node for ZMipNode {
         let pipeline_cache = world.resource::<PipelineCache>();
         let pipeline = world.resource::<ZMipPipeline>();
 
-        if let Some(init_pipeline) = pipeline_cache.get_compute_pipeline(pipeline.pipeline) {
-            if let Some(mipmap_pipeline) =
-                pipeline_cache.get_compute_pipeline(pipeline.mipmap_pipeline)
-            {
-                let mut pass = render_context
-                    .command_encoder
-                    .begin_compute_pass(&ComputePassDescriptor::default());
+        if let (Some(init_pipeline), Some(mipmap_pipeline)) = (
+            pipeline_cache.get_compute_pipeline(pipeline.pipeline),
+            pipeline_cache.get_compute_pipeline(pipeline.mipmap_pipeline),
+        ) {
+            let mut pass = render_context
+                .command_encoder
+                .begin_compute_pass(&ComputePassDescriptor::default());
 
-                pass.set_pipeline(init_pipeline);
-                pass.set_bind_group(0, &bind_group.depth_bind_group, &[]);
-                pass.dispatch_workgroups(1024 / 8, 1024 / 8, 1);
+            pass.set_pipeline(init_pipeline);
+            pass.set_bind_group(0, &bind_group.depth_bind_group, &[]);
+            pass.dispatch_workgroups(1024 / 8, 1024 / 8, 1);
 
-                pass.set_pipeline(mipmap_pipeline);
-                for i in 0..6 {
-                    pass.set_bind_group(0, &bind_group.mipmap_bind_groups[i], &[]);
-                    let image_size = 1024 / (2 << i);
-                    pass.dispatch_workgroups(image_size / 8, image_size / 8, 1);
-                }
+            pass.set_pipeline(mipmap_pipeline);
+            for i in 0..6 {
+                pass.set_bind_group(0, &bind_group.mipmap_bind_groups[i], &[]);
+                let image_size = 1024 / (2 << i);
+                pass.dispatch_workgroups(image_size / 8, image_size / 8, 1);
             }
         }
         Ok(())

@@ -23,8 +23,7 @@ fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32>
 
 fn screen_space_point(view_transform: mat4x4<f32>, pt: vec3<f32>) -> vec3<f32> {
     let pt = view_transform * vec4<f32>(pt, 1.0);
-    let pt2d = pt.xyz / pt.w;
-    return pt2d;
+    return pt.xyz / pt.w;
 }
 
 struct View {
@@ -206,8 +205,8 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     let pos_infinity = bitcast<f32>(0x7f800000u);
     let neg_infinity = bitcast<f32>(0xff800000u);
 
-    var bounding_rect_min = vec3<f32>(pos_infinity, pos_infinity, pos_infinity);
-    var bounding_rect_max = vec3<f32>(neg_infinity, neg_infinity, neg_infinity);
+    var ndc_aabb_min = vec3<f32>(pos_infinity, pos_infinity, pos_infinity);
+    var ndc_aabb_max = vec3<f32>(neg_infinity, neg_infinity, neg_infinity);
     for (var i = 0u; i < 8u; i++) {
         let cube_corner = vec3<f32>(
             f32(i & 0x1u),
@@ -217,45 +216,45 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
         let test_point = cube_corner * cuboid.max + (1.0 - cube_corner) * cuboid.min;
         let pt = view_transform * vec4<f32>(test_point, 1.0);
         let pt = pt.xyz / pt.w;
-        bounding_rect_min = min(bounding_rect_min, pt);
-        bounding_rect_max = max(bounding_rect_max, pt);
+        ndc_aabb_min = min(ndc_aabb_min, pt);
+        ndc_aabb_max = max(ndc_aabb_max, pt);
 
     }
-    let maxZ = bounding_rect_max.z;
+    let max_z = ndc_aabb_max.z;
 
-    let bounding_rect_max = 0.5 * bounding_rect_max + 0.5;
-    let bounding_rect_max = clamp(bounding_rect_max, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
-    let bounding_rect_min = 0.5 * bounding_rect_min + 0.5;
-    let bounding_rect_min = clamp(bounding_rect_min, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
+    let ndc_aabb_max = 0.5 * ndc_aabb_max + 0.5;
+    let ndc_aabb_max = clamp(ndc_aabb_max, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
+    let ndc_aabb_min = 0.5 * ndc_aabb_min + 0.5;
+    let ndc_aabb_min = clamp(ndc_aabb_min, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
 
-    let bounding_rect_size = abs(bounding_rect_max - bounding_rect_min) * 1024.0;
+    let bounding_rect_size = abs(ndc_aabb_max - ndc_aabb_min) * 1024.0;
 
     let lod = ceil(log2(max(bounding_rect_size.x, bounding_rect_size.y)));
     let lod = u32(clamp(lod, 0.0, 6.0)); // we only have 8 lod layers in total
     let samples = vec4(
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(ndc_aabb_min.x, 1.0-ndc_aabb_min.y) * f32(1024 >> lod)),
             i32(lod)
-        ).x,
+        ).r,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_min.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(ndc_aabb_min.x, 1.0-ndc_aabb_max.y) * f32(1024 >> lod)),
             i32(lod)
-        ).x,
+        ).r,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_min.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(ndc_aabb_max.x, 1.0-ndc_aabb_min.y) * f32(1024 >> lod)),
             i32(lod)
-        ).x,
+        ).r,
         textureLoad(
             depth_mipmap,
-            vec2<i32>(vec2(bounding_rect_max.x, 1.0-bounding_rect_max.y) * f32(1024 >> lod)),
+            vec2<i32>(vec2(ndc_aabb_max.x, 1.0-ndc_aabb_max.y) * f32(1024 >> lod)),
             i32(lod)
-        ).x,
+        ).r,
     );
-    let prevDepth = min(min(samples.x, samples.y), min(samples.z, samples.w));
-    if maxZ < prevDepth {
+    let prev_depth = min(min(samples.x, samples.y), min(samples.z, samples.w));
+    if max_z < prev_depth {
         return discard_vertex();
     }
     #endif
@@ -294,7 +293,6 @@ struct FragmentInput {
 
 struct FragmentOutput {
     @location(0) color: vec4<f32>,
-    @location(1) entity_primitive_id: vec2<u32>,
 }
 
 // Constant-pixel-width edges:

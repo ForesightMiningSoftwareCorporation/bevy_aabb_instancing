@@ -1,17 +1,15 @@
 use std::num::NonZeroU32;
 
 use bevy::{
-    prelude::{Commands, Component, Entity, FromWorld, Image, Msaa, Query, Res, ResMut, Resource},
+    prelude::{Commands, Component, Entity, FromWorld, Query, Res, ResMut, Resource},
     render::{
         camera::ExtractedCamera,
-        render_asset::RenderAssets,
         render_resource::{
             Extent3d, FilterMode, Sampler, SamplerDescriptor, Texture, TextureAspect,
             TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
             TextureViewDescriptor, TextureViewDimension,
         },
         renderer::RenderDevice,
-        view::ExtractedWindows,
     },
     utils::HashMap,
 };
@@ -51,9 +49,6 @@ impl FromWorld for GBuffers {
 /// For each camera, prepare the GBuffers
 pub fn prepare_view_targets(
     mut commands: Commands,
-    _windows: Res<ExtractedWindows>,
-    _images: Res<RenderAssets<Image>>,
-    _msaa: Res<Msaa>,
     render_device: Res<RenderDevice>,
     cameras: Query<(Entity, &ExtractedCamera)>,
     mut buffers: ResMut<GBuffers>,
