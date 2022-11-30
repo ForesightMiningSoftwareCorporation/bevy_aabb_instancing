@@ -1,31 +1,23 @@
-use std::borrow::Cow;
-
 use bevy::asset::HandleUntyped;
 use bevy::{
-    ecs::query,
     prelude::*,
     reflect::TypeUuid,
     render::{
         camera::ExtractedCamera,
-        render_asset::RenderAssets,
         render_graph::{self, Node, NodeRunError, SlotInfo, SlotType},
         render_resource::{
             BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout,
             BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
-            BufferBinding, BufferBindingType, CachedComputePipelineId, ComputePassDescriptor,
-            ComputePipelineDescriptor, PipelineCache, SamplerBindingType, ShaderStages,
-            StorageTextureAccess, TextureFormat, TextureSampleType, TextureViewDimension,
+            CachedComputePipelineId, ComputePassDescriptor, ComputePipelineDescriptor,
+            PipelineCache, SamplerBindingType, ShaderStages, StorageTextureAccess, TextureFormat,
+            TextureSampleType, TextureViewDimension,
         },
         renderer::{RenderContext, RenderDevice},
         view::{ExtractedView, ViewDepthTexture},
     },
 };
 
-use super::{
-    cuboid_cache::{CachedCuboidBuffers, CuboidBufferCache},
-    draw::ViewMeta,
-    view::{GBuffer, GBuffers},
-};
+use super::view::{GBuffer, GBuffers};
 
 pub struct ZMipNode {
     query: QueryState<
@@ -55,10 +47,7 @@ impl ZMipNode {
 
 impl Node for ZMipNode {
     fn input(&self) -> Vec<SlotInfo> {
-        vec![SlotInfo::new(
-            ZMipNode::IN_VIEW,
-            SlotType::Entity,
-        )]
+        vec![SlotInfo::new(ZMipNode::IN_VIEW, SlotType::Entity)]
     }
 
     fn update(&mut self, world: &mut World) {
@@ -72,7 +61,8 @@ impl Node for ZMipNode {
         world: &World,
     ) -> Result<(), NodeRunError> {
         let view_entity = graph.get_input_entity(Self::IN_VIEW)?;
-        let (camera, view, gbuffer, bind_group) = match self.query.get_manual(world, view_entity) {
+        let (_camera, _view, _gbuffer, bind_group) = match self.query.get_manual(world, view_entity)
+        {
             Ok(query) => query,
             Err(_) => {
                 return Ok(());

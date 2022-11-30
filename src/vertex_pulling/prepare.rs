@@ -1,10 +1,8 @@
+use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
 use super::pipeline::CuboidsPipeline;
 use super::view::{GBuffer, GBuffers};
-use crate::cuboids::CuboidsTransform;
-use crate::{ColorOptions, GpuClippingPlaneRanges};
-use super::buffers::*;
 
 use bevy::render::render_resource::BindingResource;
 use bevy::{

@@ -1,18 +1,17 @@
-use std::num::{NonZeroU128, NonZeroU32};
+use std::num::NonZeroU32;
 
 use bevy::{
-    prelude::{Color, Commands, Component, Entity, FromWorld, Image, Msaa, Query, Res, ResMut, Resource},
+    prelude::{Commands, Component, Entity, FromWorld, Image, Msaa, Query, Res, ResMut, Resource},
     render::{
         camera::ExtractedCamera,
         render_asset::RenderAssets,
         render_resource::{
-            CompareFunction, Extent3d, FilterMode, Operations, RenderPassColorAttachment, Sampler,
-            SamplerDescriptor, Texture, TextureAspect, TextureDescriptor, TextureDimension,
-            TextureFormat, TextureUsages, TextureView, TextureViewDescriptor, TextureViewDimension,
+            Extent3d, FilterMode, Sampler, SamplerDescriptor, Texture, TextureAspect,
+            TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
+            TextureViewDescriptor, TextureViewDimension,
         },
         renderer::RenderDevice,
-        texture::TextureCache,
-        view::{ExtractedWindows, ViewTarget},
+        view::ExtractedWindows,
     },
     utils::HashMap,
 };
@@ -52,14 +51,14 @@ impl FromWorld for GBuffers {
 /// For each camera, prepare the GBuffers
 pub fn prepare_view_targets(
     mut commands: Commands,
-    windows: Res<ExtractedWindows>,
-    images: Res<RenderAssets<Image>>,
-    msaa: Res<Msaa>,
+    _windows: Res<ExtractedWindows>,
+    _images: Res<RenderAssets<Image>>,
+    _msaa: Res<Msaa>,
     render_device: Res<RenderDevice>,
     cameras: Query<(Entity, &ExtractedCamera)>,
     mut buffers: ResMut<GBuffers>,
 ) {
-    for (entity, camera) in &cameras {
+    for (entity, _camera) in &cameras {
         let gbuffer = buffers.buffer.entry(entity).or_insert_with(|| {
             let texture = render_device.create_texture(&TextureDescriptor {
                 label: Some("hiz_buffer"),

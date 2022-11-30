@@ -1,3 +1,4 @@
+use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids};
@@ -9,19 +10,13 @@ use super::prepare::{
 use super::primitive_visibility;
 use super::queue::queue_cuboids;
 use super::view::GBuffers;
-use crate::clipping_planes::GpuClippingPlaneRanges;
-use crate::cuboids::CuboidsTransform;
-use crate::{ColorOptions, ColorOptionsMap};
-use super::buffers::*;
 
+use crate::ColorOptionsMap;
 
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
 use bevy::render::render_graph::RenderGraph;
-use bevy::render::{
-    render_phase::AddRenderCommand,
-    RenderApp, RenderStage,
-};
+use bevy::render::{render_phase::AddRenderCommand, RenderApp, RenderStage};
 
 /// Renders the [`Cuboids`](crate::Cuboids) component using the "vertex pulling" technique.
 #[derive(Default)]
@@ -103,25 +98,23 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_system_to_stage(RenderStage::Queue, queue_cuboids);
 
         if self.culling {
-            render_app.add_system_to_stage(RenderStage::Queue, primitive_visibility::queue_bind_group);
-            let visibility_node =
-            primitive_visibility::ZMipNode::new(&mut render_app.world);
+            render_app
+                .add_system_to_stage(RenderStage::Queue, primitive_visibility::queue_bind_group);
+            let visibility_node = primitive_visibility::ZMipNode::new(&mut render_app.world);
 
             let mut graph = render_app.world.resource_mut::<RenderGraph>();
             let draw_3d_graph = graph
                 .get_sub_graph_mut(bevy::core_pipeline::core_3d::graph::NAME)
                 .unwrap();
-            let visibility_counter_node = draw_3d_graph.add_node(
-                primitive_visibility::ZMipNode::NAME,
-                visibility_node,
-            );
+            let visibility_counter_node =
+                draw_3d_graph.add_node(primitive_visibility::ZMipNode::NAME, visibility_node);
             draw_3d_graph
                 .add_node_edge(
                     bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
                     visibility_counter_node,
                 )
                 .unwrap();
-    
+
             draw_3d_graph
                 .add_slot_edge(
                     draw_3d_graph.input_node().unwrap().id,
@@ -131,6 +124,5 @@ impl Plugin for VertexPullingRenderPlugin {
                 )
                 .unwrap();
         }
-
     }
 }

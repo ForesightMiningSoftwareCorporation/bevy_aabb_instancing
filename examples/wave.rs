@@ -9,7 +9,10 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(Msaa { samples: 1 })
-        .add_plugin(VertexPullingRenderPlugin { outlines: true, culling: true })
+        .add_plugin(VertexPullingRenderPlugin {
+            outlines: true,
+            culling: true,
+        })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
         .add_startup_system(setup)
@@ -62,8 +65,6 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
                 .insert((cuboids, aabb, color_options_id));
         }
     }
-
-
 
     commands
         .spawn(Camera3dBundle::default())
