@@ -208,4 +208,7 @@ impl CuboidsShaderDefs {
         self.vertex.push("OUTLINES".into());
         self.fragment.push("OUTLINES".into());
     }
+    pub fn enable_culling(&mut self) {
+        self.vertex.push("CULLING".into());
+    }
 }

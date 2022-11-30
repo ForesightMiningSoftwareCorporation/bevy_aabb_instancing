@@ -9,7 +9,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(Msaa { samples: 1 })
-        .add_plugin(VertexPullingRenderPlugin { outlines: true })
+        .add_plugin(VertexPullingRenderPlugin { outlines: true, culling: true })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
         .add_startup_system(setup)

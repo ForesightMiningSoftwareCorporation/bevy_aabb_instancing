@@ -27,6 +27,7 @@ use bevy::render::{
 #[derive(Default)]
 pub struct VertexPullingRenderPlugin {
     pub outlines: bool,
+    pub culling: bool,
 }
 
 impl Plugin for VertexPullingRenderPlugin {
@@ -65,6 +66,9 @@ impl Plugin for VertexPullingRenderPlugin {
         if self.outlines {
             shader_defs.enable_outlines();
         }
+        if self.culling {
+            shader_defs.enable_culling();
+        }
         render_app.insert_resource(shader_defs);
 
         render_app
@@ -96,41 +100,37 @@ impl Plugin for VertexPullingRenderPlugin {
             // ViewUniforms resource is not ready until after prepare phase;
             // need system order/label exported from bevy
             .add_system_to_stage(RenderStage::Queue, prepare_cuboids_view_bind_group)
-            .add_system_to_stage(RenderStage::Queue, queue_cuboids)
-            .add_system_to_stage(RenderStage::Queue, primitive_visibility::queue_bind_group);
+            .add_system_to_stage(RenderStage::Queue, queue_cuboids);
 
-        // let pass_node_3d = super::graph_node::MainPass3dNode::new(&mut render_app.world);
-        let visibility_node =
+        if self.culling {
+            render_app.add_system_to_stage(RenderStage::Queue, primitive_visibility::queue_bind_group);
+            let visibility_node =
             primitive_visibility::ZMipNode::new(&mut render_app.world);
 
-        let mut graph = render_app.world.resource_mut::<RenderGraph>();
-        let draw_3d_graph = graph
-            .get_sub_graph_mut(bevy::core_pipeline::core_3d::graph::NAME)
-            .unwrap();
-
-        //draw_3d_graph.add_node(
-        //    bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
-        //   pass_node_3d,
-        //);
-
-        let visibility_counter_node = draw_3d_graph.add_node(
-            primitive_visibility::ZMipNode::NAME,
-            visibility_node,
-        );
-        draw_3d_graph
-            .add_node_edge(
-                bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
-                visibility_counter_node,
-            )
-            .unwrap();
-
-        draw_3d_graph
-            .add_slot_edge(
-                draw_3d_graph.input_node().unwrap().id,
-                bevy::core_pipeline::core_3d::graph::input::VIEW_ENTITY,
+            let mut graph = render_app.world.resource_mut::<RenderGraph>();
+            let draw_3d_graph = graph
+                .get_sub_graph_mut(bevy::core_pipeline::core_3d::graph::NAME)
+                .unwrap();
+            let visibility_counter_node = draw_3d_graph.add_node(
                 primitive_visibility::ZMipNode::NAME,
-                primitive_visibility::ZMipNode::IN_VIEW,
-            )
-            .unwrap();
+                visibility_node,
+            );
+            draw_3d_graph
+                .add_node_edge(
+                    bevy::core_pipeline::core_3d::graph::node::MAIN_PASS,
+                    visibility_counter_node,
+                )
+                .unwrap();
+    
+            draw_3d_graph
+                .add_slot_edge(
+                    draw_3d_graph.input_node().unwrap().id,
+                    bevy::core_pipeline::core_3d::graph::input::VIEW_ENTITY,
+                    primitive_visibility::ZMipNode::NAME,
+                    primitive_visibility::ZMipNode::IN_VIEW,
+                )
+                .unwrap();
+        }
+
     }
 }

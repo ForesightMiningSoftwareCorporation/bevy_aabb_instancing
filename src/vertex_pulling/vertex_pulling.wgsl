@@ -200,6 +200,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
 
     out.clip_position = ndc_position;
 
+    #ifdef CULLING
     let view_transform = view.view_proj * transform.m;
 
     let pos_infinity = bitcast<f32>(0x7f800000u);
@@ -257,6 +258,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     if maxZ < prevDepth {
         return discard_vertex();
     }
+    #endif
 
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
     let depth_bias_eps = 0.00000008;
