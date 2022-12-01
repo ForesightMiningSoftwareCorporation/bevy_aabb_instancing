@@ -1,6 +1,7 @@
 use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::{cuboids::CuboidsTransform, ColorOptions};
 
+use bevy::render::render_resource::{SamplerBindingType, TextureSampleType, TextureViewDimension};
 use bevy::{
     prelude::*,
     reflect::TypeUuid,
@@ -48,6 +49,22 @@ impl FromWorld for CuboidsPipeline {
                         has_dynamic_offset: true,
                         min_binding_size: BufferSize::new(ViewUniform::min_size().get()),
                     },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: ShaderStages::VERTEX,
+                    ty: BindingType::Texture {
+                        sample_type: TextureSampleType::Float { filterable: true },
+                        view_dimension: TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                },
+                BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: ShaderStages::VERTEX,
+                    ty: BindingType::Sampler(SamplerBindingType::Filtering),
                     count: None,
                 },
             ],
@@ -190,5 +207,8 @@ impl CuboidsShaderDefs {
     pub fn enable_outlines(&mut self) {
         self.vertex.push("OUTLINES".into());
         self.fragment.push("OUTLINES".into());
+    }
+    pub fn enable_culling(&mut self) {
+        self.vertex.push("CULLING".into());
     }
 }

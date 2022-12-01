@@ -1,5 +1,5 @@
-use super::cuboid_cache::CuboidBufferCache;
 use super::buffers::*;
+use super::cuboid_cache::CuboidBufferCache;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
 use crate::ColorOptionsId;

@@ -21,6 +21,11 @@ fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32>
     return rgb_temp + lightness_match;
 }
 
+fn screen_space_point(view_transform: mat4x4<f32>, pt: vec3<f32>) -> vec3<f32> {
+    let pt = view_transform * vec4<f32>(pt, 1.0);
+    return pt.xyz / pt.w;
+}
+
 struct View {
     view_proj: mat4x4<f32>,
     inverse_view_proj: mat4x4<f32>,
@@ -81,6 +86,11 @@ struct Transform {
 @group(0) @binding(0)
 var<uniform> view: View;
 
+@group(0) @binding(1)
+var depth_mipmap: texture_2d<f32>;
+
+@group(0) @binding(2) var depth_mipmap_sampler: sampler;
+
 @group(1) @binding(0)
 var<uniform> color_options: ColorOptions;
 
@@ -107,6 +117,62 @@ fn discard_vertex() -> VertexOutput {
     // Apparently GPUs understand this magic.
     out.clip_position.x = bitcast<f32>(0x7fc00000); // nan
     return out;
+}
+
+fn visibility_culling(cuboid: Cuboid, view_transform: mat4x4<f32>) -> bool {
+    let pos_infinity = bitcast<f32>(0x7f800000u);
+    let neg_infinity = bitcast<f32>(0xff800000u);
+
+    var ndc_aabb_min = vec3<f32>(pos_infinity, pos_infinity, pos_infinity);
+    var ndc_aabb_max = vec3<f32>(neg_infinity, neg_infinity, neg_infinity);
+    for (var i = 0u; i < 8u; i++) {
+        let cube_corner = vec3<f32>(
+            f32(i & 0x1u),
+            f32((i & 0x2u) >> 1u),
+            f32((i & 0x4u) >> 2u),
+        );
+        let test_point = cube_corner * cuboid.max + (1.0 - cube_corner) * cuboid.min;
+        let pt = view_transform * vec4<f32>(test_point, 1.0);
+        let pt = pt.xyz / pt.w;
+        ndc_aabb_min = min(ndc_aabb_min, pt);
+        ndc_aabb_max = max(ndc_aabb_max, pt);
+
+    }
+    let max_z = ndc_aabb_max.z;
+
+    let ndc_aabb_max = 0.5 * ndc_aabb_max + 0.5;
+    let ndc_aabb_max = clamp(ndc_aabb_max, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
+    let ndc_aabb_min = 0.5 * ndc_aabb_min + 0.5;
+    let ndc_aabb_min = clamp(ndc_aabb_min, vec3<f32>(0.0, 0.0, 0.0), vec3<f32>(1.0, 1.0, 1.0));
+
+    let bounding_rect_size = abs(ndc_aabb_max - ndc_aabb_min) * 1024.0;
+
+    let lod = ceil(log2(max(bounding_rect_size.x, bounding_rect_size.y)));
+    let lod = u32(clamp(lod, 0.0, 6.0)); // we only have 8 lod layers in total
+    let samples = vec4(
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(ndc_aabb_min.x, 1.0-ndc_aabb_min.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).r,
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(ndc_aabb_min.x, 1.0-ndc_aabb_max.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).r,
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(ndc_aabb_max.x, 1.0-ndc_aabb_min.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).r,
+        textureLoad(
+            depth_mipmap,
+            vec2<i32>(vec2(ndc_aabb_max.x, 1.0-ndc_aabb_max.y) * f32(1024 >> lod)),
+            i32(lod)
+        ).r,
+    );
+    let prev_depth = min(min(samples.x, samples.y), min(samples.z, samples.w));
+    return max_z < prev_depth;
 }
 
 @vertex
@@ -184,10 +250,19 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
         f32((visible_vertex_index & 0x4u) >> 2u),
     );
     let model_position = cube_corner * cuboid.max + (1.0 - cube_corner) * cuboid.min;
-    let world_position = transform.m * vec4<f32>(model_position, 1.0);
-    let ndc_position = view.view_proj * world_position;
+    
+    let view_transform = view.view_proj * transform.m;
+
+    let ndc_position = view_transform * vec4<f32>(model_position, 1.0);
 
     out.clip_position = ndc_position;
+
+    #ifdef CULLING
+
+    if visibility_culling(cuboid, view_transform) {
+        return discard_vertex();
+    }
+    #endif
 
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
     let depth_bias_eps = 0.00000008;
@@ -232,7 +307,6 @@ struct FragmentOutput {
 fn fragment(in: FragmentInput) -> FragmentOutput {
     var out: FragmentOutput;
     out.color = in.color;
-
     #ifdef OUTLINES
 
     let dist_to_edge = vec2<f32>(1.0) - abs(in.face_center_to_fragment);

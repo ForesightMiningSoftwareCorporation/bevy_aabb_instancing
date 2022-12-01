@@ -1,8 +1,10 @@
+use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
 use super::pipeline::CuboidsPipeline;
-use super::buffers::*;
+use super::view::{GBuffer, GBuffers};
 
+use bevy::render::render_resource::BindingResource;
 use bevy::{
     prelude::*,
     render::{
@@ -131,16 +133,32 @@ pub(crate) fn prepare_cuboids_view_bind_group(
     cuboids_pipeline: Res<CuboidsPipeline>,
     mut view_meta: ResMut<ViewMeta>,
     view_uniforms: Res<ViewUniforms>,
+    gbuffers: Res<GBuffers>,
+    query: Query<(Entity, &GBuffer)>,
 ) {
     if let Some(view_binding) = view_uniforms.uniforms.binding() {
-        view_meta.cuboids_view_bind_group =
-            Some(render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: view_binding,
-                }],
+        for (entity, gbuffer) in query.iter() {
+            let bind_group = render_device.create_bind_group(&BindGroupDescriptor {
                 label: Some("cuboids_view_bind_group"),
                 layout: &cuboids_pipeline.view_layout,
-            }));
+                entries: &[
+                    BindGroupEntry {
+                        binding: 0,
+                        resource: view_binding.clone(),
+                    },
+                    BindGroupEntry {
+                        binding: 1,
+                        resource: BindingResource::TextureView(&gbuffer.mipmap_views_all),
+                    },
+                    BindGroupEntry {
+                        binding: 2,
+                        resource: BindingResource::Sampler(&gbuffers.sampler),
+                    },
+                ],
+            });
+            view_meta
+                .cuboids_view_bind_groups
+                .insert(entity, bind_group);
+        }
     }
 }
