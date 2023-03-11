@@ -1,6 +1,7 @@
 use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::{cuboids::CuboidsTransform, ColorOptions};
 
+use bevy::render::render_resource::ShaderDefVal;
 use bevy::{
     prelude::*,
     reflect::TypeUuid,
@@ -109,16 +110,19 @@ impl FromWorld for CuboidsPipeline {
             }],
         });
 
-        let sample_count = world.get_resource::<Msaa>().map(|m| m.samples).unwrap_or(1);
+        let sample_count = world
+            .get_resource::<Msaa>()
+            .map(|m| m.samples())
+            .unwrap_or(1);
         let shader_defs = world.resource::<CuboidsShaderDefs>();
         let pipeline_descriptor = RenderPipelineDescriptor {
             label: Some("cuboids_pipeline".into()),
-            layout: Some(vec![
+            layout: vec![
                 view_layout.clone(),
                 aux_layout.clone(),
                 transforms_layout.clone(),
                 cuboids_layout.clone(),
-            ]),
+            ],
             vertex: VertexState {
                 shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
                 shader_defs: shader_defs.vertex.clone(),
@@ -165,9 +169,10 @@ impl FromWorld for CuboidsPipeline {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
+            push_constant_ranges: Vec::new(),
         };
 
-        let mut pipeline_cache = world.resource_mut::<PipelineCache>();
+        let pipeline_cache = world.resource_mut::<PipelineCache>();
         let pipeline_id = pipeline_cache.queue_render_pipeline(pipeline_descriptor);
 
         Self {
@@ -182,13 +187,15 @@ impl FromWorld for CuboidsPipeline {
 
 #[derive(Clone, Default, Resource)]
 pub(crate) struct CuboidsShaderDefs {
-    pub vertex: Vec<String>,
-    pub fragment: Vec<String>,
+    pub vertex: Vec<ShaderDefVal>,
+    pub fragment: Vec<ShaderDefVal>,
 }
 
 impl CuboidsShaderDefs {
     pub fn enable_outlines(&mut self) {
-        self.vertex.push("OUTLINES".into());
-        self.fragment.push("OUTLINES".into());
+        self.vertex
+            .push(ShaderDefVal::Bool("OUTLINES".into(), true));
+        self.fragment
+            .push(ShaderDefVal::Bool("OUTLINES".into(), true));
     }
 }

@@ -11,10 +11,10 @@ repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy-aabb-in
 trace = ["bevy/trace_chrome"]
 
 [dependencies.bevy]
-version = "0.9"
+version = "0.10"
 default-features = false
 features = ["bevy_asset", "bevy_core_pipeline", "bevy_render", "x11"]
 
 [dev-dependencies]
 rand = "0.8"
-smooth-bevy-cameras = { git = "https://github.com/olegomon/smooth-bevy-cameras" }
+smooth-bevy-cameras = "0.8"

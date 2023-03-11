@@ -154,8 +154,8 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     let cuboid_center = (cuboid.min + cuboid.max) / 2.0;
 
     if (clipping_planes.num_ranges > 0u) {
-        let tfm_cuboid_center = transform.m * vec4<f32>(cuboid_center, 1.0);
-        let tfm_cuboid_center = tfm_cuboid_center.xyz / tfm_cuboid_center.w;
+        let tfm_cuboid_center_v4 = transform.m * vec4<f32>(cuboid_center, 1.0);
+        let tfm_cuboid_center = tfm_cuboid_center_v4.xyz / tfm_cuboid_center_v4.w;
 
         // Clip any cuboid instance that falls out of the allowed ranges.
         for (var i = 0u; i < clipping_planes.num_ranges; i++) {
@@ -169,8 +169,8 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     }
 
     // Need to do this calculation in cuboid (model) space so our offsets are grid-aligned.
-    let camera_in_cuboid_space = transform.m_inv * vec4<f32>(view.world_position, 1.0);
-    let camera_in_cuboid_space = camera_in_cuboid_space.xyz / camera_in_cuboid_space.w;
+    let camera_in_cuboid_space_v4 = transform.m_inv * vec4<f32>(view.world_position, 1.0);
+    let camera_in_cuboid_space = camera_in_cuboid_space_v4.xyz / camera_in_cuboid_space_v4.w;
     let offset = camera_in_cuboid_space - cuboid_center;
     let mirror_mask =
         u32(offset.x > 0.0) |
