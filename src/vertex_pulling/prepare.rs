@@ -87,7 +87,6 @@ pub(crate) fn prepare_cuboid_transforms(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn prepare_cuboids(
     pipeline: Res<CuboidsPipeline>,
     render_device: Res<RenderDevice>,
