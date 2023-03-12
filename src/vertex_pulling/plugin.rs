@@ -11,6 +11,7 @@ use super::queue::queue_cuboids;
 use crate::ColorOptionsMap;
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
+use bevy::render::view::ViewSet;
 use bevy::render::RenderSet;
 use bevy::render::{render_phase::AddRenderCommand, RenderApp};
 
@@ -70,12 +71,10 @@ impl Plugin for VertexPullingRenderPlugin {
                         .after(prepare_clipping_planes),
                     prepare_cuboid_transforms,
                     prepare_cuboids,
+                    prepare_cuboids_view_bind_group.after(ViewSet::PrepareUniforms),
                 )
                     .in_set(RenderSet::Prepare),
             )
-            // HACK: prepare view bind group should happen in prepare phase, but
-            // ViewUniforms resource is not ready until after prepare phase;
-            // need system order/label exported from bevy
-            .add_systems((prepare_cuboids_view_bind_group, queue_cuboids).in_set(RenderSet::Queue));
+            .add_system(queue_cuboids.in_set(RenderSet::Queue));
     }
 }
