@@ -67,7 +67,7 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
         .spawn(Camera3dBundle::default())
         .insert(FpsCameraBundle::new(
             FpsCameraController {
-                translate_sensitivity: 2.0,
+                translate_sensitivity: 200.0,
                 ..Default::default()
             },
             Vec3::new(0.0, 100.0, 0.0),
