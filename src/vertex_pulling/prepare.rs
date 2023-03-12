@@ -1,7 +1,7 @@
+use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
 use super::pipeline::CuboidsPipeline;
-use super::buffers::*;
 
 use bevy::{
     prelude::*,
