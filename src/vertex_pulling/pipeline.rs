@@ -110,10 +110,7 @@ impl FromWorld for CuboidsPipeline {
             }],
         });
 
-        let sample_count = world
-            .get_resource::<Msaa>()
-            .map(|m| m.samples())
-            .unwrap_or(1);
+        let sample_count = world.resource::<Msaa>().samples();
         let shader_defs = world.resource::<CuboidsShaderDefs>();
         let pipeline_descriptor = RenderPipelineDescriptor {
             label: Some("cuboids_pipeline".into()),
