@@ -190,9 +190,7 @@ pub(crate) struct CuboidsShaderDefs {
 
 impl CuboidsShaderDefs {
     pub fn enable_outlines(&mut self) {
-        self.vertex
-            .push(ShaderDefVal::Bool("OUTLINES".into(), true));
-        self.fragment
-            .push(ShaderDefVal::Bool("OUTLINES".into(), true));
+        self.vertex.push("OUTLINES".into());
+        self.fragment.push("OUTLINES".into());
     }
 }
