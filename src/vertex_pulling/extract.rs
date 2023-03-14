@@ -1,5 +1,5 @@
-use super::cuboid_cache::CuboidBufferCache;
 use super::buffers::*;
+use super::cuboid_cache::CuboidBufferCache;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
 use crate::ColorOptionsId;
@@ -9,6 +9,8 @@ use bevy::{prelude::*, render::Extract};
 
 #[allow(clippy::type_complexity)]
 pub(crate) fn extract_cuboids(
+    mut prev_extracted_entities_size: Local<usize>,
+    mut commands: Commands,
     cuboids: Extract<
         Query<(
             Entity,
@@ -34,6 +36,7 @@ pub(crate) fn extract_cuboids(
     // First extract color options so we can assign dynamic uniform indices to cuboids.
     let color_options_indices = color_options.write_uniforms(&mut color_options_uniforms);
 
+    let mut extracted_entities = Vec::with_capacity(*prev_extracted_entities_size);
     for (
         entity,
         cuboids,
@@ -49,6 +52,8 @@ pub(crate) fn extract_cuboids(
         if cuboids.instances.is_empty() {
             continue;
         }
+
+        extracted_entities.push((entity, ()));
 
         let transform = CuboidsTransform::from_matrix(transform.compute_matrix());
 
@@ -67,6 +72,9 @@ pub(crate) fn extract_cuboids(
         entry.position = transform.position();
         entry.transform_index = transform_uniforms.push(transform);
     }
+
+    *prev_extracted_entities_size = extracted_entities.len();
+    commands.insert_or_spawn_batch(extracted_entities);
 
     cuboid_buffers.cull_entities();
 }

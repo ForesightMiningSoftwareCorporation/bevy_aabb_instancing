@@ -8,7 +8,7 @@ use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(Msaa { samples: 1 })
+        .insert_resource(Msaa::Off)
         .add_plugin(VertexPullingRenderPlugin { outlines: true })
         .add_plugin(LookTransformPlugin)
         .add_plugin(FpsCameraPlugin::default())
@@ -67,11 +67,12 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
         .spawn(Camera3dBundle::default())
         .insert(FpsCameraBundle::new(
             FpsCameraController {
-                translate_sensitivity: 2.0,
+                translate_sensitivity: 200.0,
                 ..Default::default()
             },
             Vec3::new(0.0, 100.0, 0.0),
             Vec3::new(100.0, 0.0, 100.0),
+            Vec3::Y,
         ));
 }
 

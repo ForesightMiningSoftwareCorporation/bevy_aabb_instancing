@@ -1,3 +1,4 @@
+use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids};
@@ -7,15 +8,12 @@ use super::prepare::{
     prepare_cuboid_transforms, prepare_cuboids, prepare_cuboids_view_bind_group,
 };
 use super::queue::queue_cuboids;
-use crate::{ColorOptionsMap};
-use super::buffers::*;
-
+use crate::ColorOptionsMap;
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
-use bevy::render::{
-    render_phase::AddRenderCommand,
-    RenderApp, RenderStage,
-};
+use bevy::render::view::ViewSet;
+use bevy::render::RenderSet;
+use bevy::render::{render_phase::AddRenderCommand, RenderApp};
 
 /// Renders the [`Cuboids`](crate::Cuboids) component using the "vertex pulling" technique.
 #[derive(Default)]
@@ -63,22 +61,20 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<TransformsMeta>()
             .init_resource::<UniformBufferOfGpuClippingPlaneRanges>()
             .init_resource::<ViewMeta>()
-            .add_system_to_stage(RenderStage::Extract, extract_cuboids)
-            .add_system_to_stage(RenderStage::Extract, extract_clipping_planes)
-            .add_system_to_stage(RenderStage::Prepare, prepare_color_options)
-            .add_system_to_stage(RenderStage::Prepare, prepare_clipping_planes)
-            .add_system_to_stage(
-                RenderStage::Prepare,
-                prepare_auxiliary_bind_group
-                    .after(prepare_color_options)
-                    .after(prepare_clipping_planes),
+            .add_systems((extract_cuboids, extract_clipping_planes).in_schedule(ExtractSchedule))
+            .add_systems(
+                (
+                    prepare_color_options,
+                    prepare_clipping_planes,
+                    prepare_auxiliary_bind_group
+                        .after(prepare_color_options)
+                        .after(prepare_clipping_planes),
+                    prepare_cuboid_transforms,
+                    prepare_cuboids,
+                    prepare_cuboids_view_bind_group.after(ViewSet::PrepareUniforms),
+                )
+                    .in_set(RenderSet::Prepare),
             )
-            .add_system_to_stage(RenderStage::Prepare, prepare_cuboid_transforms)
-            .add_system_to_stage(RenderStage::Prepare, prepare_cuboids)
-            // HACK: prepare view bind group should happen in prepare phase, but
-            // ViewUniforms resource is not ready until after prepare phase;
-            // need system order/label exported from bevy
-            .add_system_to_stage(RenderStage::Queue, prepare_cuboids_view_bind_group)
-            .add_system_to_stage(RenderStage::Queue, queue_cuboids);
+            .add_system(queue_cuboids.in_set(RenderSet::Queue));
     }
 }

@@ -1,7 +1,7 @@
+use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
 use super::pipeline::CuboidsPipeline;
-use super::buffers::*;
 
 use bevy::{
     prelude::*,
@@ -87,7 +87,6 @@ pub(crate) fn prepare_cuboid_transforms(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn prepare_cuboids(
     pipeline: Res<CuboidsPipeline>,
     render_device: Res<RenderDevice>,
