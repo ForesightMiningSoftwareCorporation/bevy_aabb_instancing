@@ -1,8 +1,12 @@
 [package]
 name = "bevy-aabb-instancing"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2021"
 description = "Render millions of AABB instances in Bevy."
+authors = [
+    "Duncan Fairbanks <duncan.fairbanks@foresightmining.com>",
+    "Zhixing Zhang <zhixing.zhang@foresightmining.com>"
+]
 keywords = ["bevy", "aabb", "cube", "instancing", "render"]
 license = "Apache-2.0"
 repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy-aabb-instancing/"
