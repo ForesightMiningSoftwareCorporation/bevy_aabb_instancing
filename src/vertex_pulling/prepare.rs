@@ -1,7 +1,7 @@
 use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
-use super::pipeline::CuboidsPipeline;
+use super::pipeline::CuboidsPipelines;
 
 use bevy::{
     prelude::*,
@@ -31,7 +31,7 @@ pub(crate) fn prepare_color_options(
 }
 
 pub(crate) fn prepare_auxiliary_bind_group(
-    pipeline: Res<CuboidsPipeline>,
+    pipeline: Res<CuboidsPipelines>,
     render_device: Res<RenderDevice>,
     mut aux_meta: ResMut<AuxiliaryMeta>,
     clipping_plane_uniform: Res<UniformBufferOfGpuClippingPlaneRanges>,
@@ -59,7 +59,7 @@ pub(crate) fn prepare_auxiliary_bind_group(
 }
 
 pub(crate) fn prepare_cuboid_transforms(
-    pipeline: Res<CuboidsPipeline>,
+    pipeline: Res<CuboidsPipelines>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     mut transforms_meta: ResMut<TransformsMeta>,
@@ -88,7 +88,7 @@ pub(crate) fn prepare_cuboid_transforms(
 }
 
 pub(crate) fn prepare_cuboids(
-    pipeline: Res<CuboidsPipeline>,
+    pipeline: Res<CuboidsPipelines>,
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
     mut cuboid_buffers: ResMut<CuboidBufferCache>,
@@ -127,7 +127,7 @@ pub(crate) fn prepare_cuboids(
 
 pub(crate) fn prepare_cuboids_view_bind_group(
     render_device: Res<RenderDevice>,
-    cuboids_pipeline: Res<CuboidsPipeline>,
+    cuboids_pipeline: Res<CuboidsPipelines>,
     mut view_meta: ResMut<ViewMeta>,
     view_uniforms: Res<ViewUniforms>,
 ) {

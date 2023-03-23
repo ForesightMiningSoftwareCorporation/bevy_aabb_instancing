@@ -2,7 +2,7 @@ use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids};
-use super::pipeline::{CuboidsPipeline, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
+use super::pipeline::{CuboidsPipelines, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
 use super::prepare::{
     prepare_auxiliary_bind_group, prepare_clipping_planes, prepare_color_options,
     prepare_cuboid_transforms, prepare_cuboids, prepare_cuboids_view_bind_group,
@@ -55,7 +55,7 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_render_command::<Opaque3d, DrawCuboids>()
             .init_resource::<AuxiliaryMeta>()
             .init_resource::<CuboidBufferCache>()
-            .init_resource::<CuboidsPipeline>()
+            .init_resource::<CuboidsPipelines>()
             .init_resource::<DynamicUniformBufferOfColorOptions>()
             .init_resource::<DynamicUniformBufferOfCuboidTransforms>()
             .init_resource::<TransformsMeta>()

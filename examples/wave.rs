@@ -64,7 +64,13 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
     }
 
     commands
-        .spawn(Camera3dBundle::default())
+        .spawn(Camera3dBundle {
+            camera: Camera {
+                hdr: true,
+                ..default()
+            },
+            ..default()
+        })
         .insert(FpsCameraBundle::new(
             FpsCameraController {
                 translate_sensitivity: 200.0,

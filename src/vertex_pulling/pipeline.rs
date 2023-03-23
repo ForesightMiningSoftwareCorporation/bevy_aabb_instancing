@@ -2,6 +2,7 @@ use crate::clipping_planes::GpuClippingPlaneRanges;
 use crate::{cuboids::CuboidsTransform, ColorOptions};
 
 use bevy::render::render_resource::ShaderDefVal;
+use bevy::render::texture::BevyDefault;
 use bevy::{
     prelude::*,
     reflect::TypeUuid,
@@ -16,14 +17,15 @@ use bevy::{
             TextureFormat, VertexState,
         },
         renderer::RenderDevice,
-        texture::BevyDefault,
         view::ViewUniform,
     },
 };
 
 #[derive(Resource)]
-pub(crate) struct CuboidsPipeline {
+pub(crate) struct CuboidsPipelines {
     pub pipeline_id: CachedRenderPipelineId,
+    pub hdr_pipeline_id: CachedRenderPipelineId,
+
     pub aux_layout: BindGroupLayout,
     pub cuboids_layout: BindGroupLayout,
     pub transforms_layout: BindGroupLayout,
@@ -33,7 +35,7 @@ pub(crate) struct CuboidsPipeline {
 pub(crate) const VERTEX_PULLING_SHADER_HANDLE: HandleUntyped =
     HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 17343092250772987267);
 
-impl FromWorld for CuboidsPipeline {
+impl FromWorld for CuboidsPipelines {
     fn from_world(world: &mut World) -> Self {
         let render_device = world.resource::<RenderDevice>();
 
@@ -112,68 +114,89 @@ impl FromWorld for CuboidsPipeline {
 
         let sample_count = world.resource::<Msaa>().samples();
         let shader_defs = world.resource::<CuboidsShaderDefs>();
+
+        let layout = vec![
+            view_layout.clone(),
+            aux_layout.clone(),
+            transforms_layout.clone(),
+            cuboids_layout.clone(),
+        ];
+        let vertex = VertexState {
+            shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
+            shader_defs: shader_defs.vertex.clone(),
+            entry_point: "vertex".into(),
+            buffers: vec![],
+        };
+        let fragment_target = |texture_format| FragmentState {
+            shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
+            shader_defs: shader_defs.fragment.clone(),
+            entry_point: "fragment".into(),
+            targets: vec![Some(ColorTargetState {
+                format: texture_format,
+                blend: Some(BlendState::REPLACE),
+                write_mask: ColorWrites::ALL,
+            })],
+        };
+        let primitive = PrimitiveState {
+            front_face: FrontFace::Ccw,
+            cull_mode: None,
+            unclipped_depth: false,
+            polygon_mode: PolygonMode::Fill,
+            conservative: false,
+            topology: PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+        };
+        let depth_stencil = Some(DepthStencilState {
+            format: TextureFormat::Depth32Float,
+            depth_write_enabled: true,
+            depth_compare: CompareFunction::Greater,
+            stencil: StencilState {
+                front: StencilFaceState::IGNORE,
+                back: StencilFaceState::IGNORE,
+                read_mask: 0,
+                write_mask: 0,
+            },
+            bias: DepthBiasState {
+                constant: 0,
+                slope_scale: 0.0,
+                clamp: 0.0,
+            },
+        });
+        let multisample = MultisampleState {
+            count: sample_count,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
+        };
+
         let pipeline_descriptor = RenderPipelineDescriptor {
             label: Some("cuboids_pipeline".into()),
-            layout: vec![
-                view_layout.clone(),
-                aux_layout.clone(),
-                transforms_layout.clone(),
-                cuboids_layout.clone(),
-            ],
-            vertex: VertexState {
-                shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
-                shader_defs: shader_defs.vertex.clone(),
-                entry_point: "vertex".into(),
-                buffers: vec![],
-            },
-            fragment: Some(FragmentState {
-                shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
-                shader_defs: shader_defs.fragment.clone(),
-                entry_point: "fragment".into(),
-                targets: vec![Some(ColorTargetState {
-                    format: TextureFormat::bevy_default(),
-                    blend: Some(BlendState::REPLACE),
-                    write_mask: ColorWrites::ALL,
-                })],
-            }),
-            primitive: PrimitiveState {
-                front_face: FrontFace::Ccw,
-                cull_mode: None,
-                unclipped_depth: false,
-                polygon_mode: PolygonMode::Fill,
-                conservative: false,
-                topology: PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-            },
-            depth_stencil: Some(DepthStencilState {
-                format: TextureFormat::Depth32Float,
-                depth_write_enabled: true,
-                depth_compare: CompareFunction::Greater,
-                stencil: StencilState {
-                    front: StencilFaceState::IGNORE,
-                    back: StencilFaceState::IGNORE,
-                    read_mask: 0,
-                    write_mask: 0,
-                },
-                bias: DepthBiasState {
-                    constant: 0,
-                    slope_scale: 0.0,
-                    clamp: 0.0,
-                },
-            }),
-            multisample: MultisampleState {
-                count: sample_count,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
+            layout: layout.clone(),
+            vertex: vertex.clone(),
+            fragment: Some(fragment_target(TextureFormat::bevy_default())),
+            primitive,
+            depth_stencil: depth_stencil.clone(),
+            multisample,
+            push_constant_ranges: Vec::new(),
+        };
+
+        let hdr_pipeline_descriptor = RenderPipelineDescriptor {
+            label: Some("cuboids_hdr_pipeline".into()),
+            layout,
+            vertex,
+            fragment: Some(fragment_target(TextureFormat::Rgba16Float)),
+            primitive,
+            depth_stencil,
+            multisample,
             push_constant_ranges: Vec::new(),
         };
 
         let pipeline_cache = world.resource_mut::<PipelineCache>();
         let pipeline_id = pipeline_cache.queue_render_pipeline(pipeline_descriptor);
+        let hdr_pipeline_id = pipeline_cache.queue_render_pipeline(hdr_pipeline_descriptor);
 
         Self {
             pipeline_id,
+            hdr_pipeline_id,
             view_layout,
             aux_layout,
             cuboids_layout,
