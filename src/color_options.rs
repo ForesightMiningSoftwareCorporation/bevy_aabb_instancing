@@ -36,6 +36,21 @@ pub struct ColorOptions {
     pub wireframe: u32,
     #[align(16)]
     pub scalar_hue: ScalarHueColorOptions,
+
+    /// An extra factor that multiplies a cuboid's color when the "emissive" bit
+    /// is set.
+    pub emissive_gain: Vec3,
+}
+
+impl Default for ColorOptions {
+    fn default() -> Self {
+        Self {
+            color_mode: COLOR_MODE_RGB,
+            wireframe: default(),
+            scalar_hue: default(),
+            emissive_gain: Vec3::splat(30.0),
+        }
+    }
 }
 
 /// Dynamic controls for coloring and visibility of scalar values encoded in
@@ -50,7 +65,7 @@ pub struct ColorOptions {
 /// ```
 ///
 /// These options are only available in [`COLOR_MODE_SCALAR_HUE`].
-#[derive(Clone, Debug, Default, ShaderType)]
+#[derive(Clone, Debug, ShaderType)]
 pub struct ScalarHueColorOptions {
     /// Cuboids with `cuboid.color < min_visible` will be clipped.
     pub min_visible: f32,
@@ -61,6 +76,24 @@ pub struct ScalarHueColorOptions {
     pub clamp_max: f32,
     pub hue_zero: f32,
     pub hue_slope: f32,
+
+    pub lightness: f32,
+    pub saturation: f32,
+}
+
+impl Default for ScalarHueColorOptions {
+    fn default() -> Self {
+        Self {
+            min_visible: 0.0,
+            max_visible: 1000.0,
+            clamp_min: 0.0,
+            clamp_max: 1000.0,
+            hue_zero: 240.0,
+            hue_slope: -300.0,
+            lightness: 0.5,
+            saturation: 1.0,
+        }
+    }
 }
 
 /// Resource used to create and modify a set of [`ColorOptions`] that are
@@ -74,11 +107,7 @@ pub struct ColorOptionsMap {
 impl Default for ColorOptionsMap {
     fn default() -> Self {
         Self {
-            options: vec![ColorOptions {
-                color_mode: COLOR_MODE_RGB,
-                wireframe: Default::default(),
-                scalar_hue: Default::default(), // unused
-            }],
+            options: vec![default()],
         }
     }
 }

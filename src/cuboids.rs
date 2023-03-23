@@ -11,7 +11,10 @@ pub type Color = u32;
 
 /// Metadata encoded in 32 bits:
 ///
-/// - `0x000000FF` = 0 for visible or 1 for invisible
+/// - `0x000000FF`
+///     - bit 0 = 0 for visible or 1 for invisible
+///     - bit 1 = 0 for non-emissive or 1 for emissive
+///     - bits 2-7 = unused
 /// - `0x0000FF00` = unused
 /// - `0xFFFF0000` = depth bias (u16)
 ///   - Multiplies the depth of each cuboid vertex by `1 + bias * eps` where
@@ -48,6 +51,18 @@ impl Cuboid {
     #[inline]
     pub fn make_invisible(&mut self) -> &mut Self {
         self.meta_bits |= 1;
+        self
+    }
+
+    #[inline]
+    pub fn make_emissive(&mut self) -> &mut Self {
+        self.meta_bits |= 0b10;
+        self
+    }
+
+    #[inline]
+    pub fn make_non_emissive(&mut self) -> &mut Self {
+        self.meta_bits &= !0b10;
         self
     }
 

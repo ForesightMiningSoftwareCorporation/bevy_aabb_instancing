@@ -18,3 +18,12 @@ features = ["bevy_asset", "bevy_core_pipeline", "bevy_render", "x11"]
 [dev-dependencies]
 rand = "0.8"
 smooth-bevy-cameras = "0.8"
+
+[[example]]
+name = "wave"
+path = "examples/wave.rs"
+
+[[example]]
+name = "bloom"
+path = "examples/bloom.rs"
+required-features = ["bevy/ktx2", "bevy/tonemapping_luts", "bevy/zstd"]

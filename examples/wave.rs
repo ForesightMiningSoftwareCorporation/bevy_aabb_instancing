@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_aabb_instancing::{
-    ColorOptions, ColorOptionsId, ColorOptionsMap, Cuboid, Cuboids, ScalarHueColorOptions,
-    VertexPullingRenderPlugin, COLOR_MODE_SCALAR_HUE,
+    ColorOptions, ColorOptionsId, ColorOptionsMap, Cuboid, Cuboids, VertexPullingRenderPlugin,
+    COLOR_MODE_SCALAR_HUE,
 };
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
@@ -19,16 +19,8 @@ fn main() {
 
 fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>) {
     let color_options_id = color_options_map.push(ColorOptions {
-        scalar_hue: ScalarHueColorOptions {
-            min_visible: 0.0,
-            max_visible: 1000.0,
-            clamp_min: 0.0,
-            clamp_max: 1000.0,
-            hue_zero: 240.0,
-            hue_slope: -300.0,
-        },
         color_mode: COLOR_MODE_SCALAR_HUE,
-        wireframe: 0,
+        ..default()
     });
 
     const PATCHES_PER_DIM: usize = 20;
@@ -64,13 +56,7 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
     }
 
     commands
-        .spawn(Camera3dBundle {
-            camera: Camera {
-                hdr: true,
-                ..default()
-            },
-            ..default()
-        })
+        .spawn(Camera3dBundle::default())
         .insert(FpsCameraBundle::new(
             FpsCameraController {
                 translate_sensitivity: 200.0,

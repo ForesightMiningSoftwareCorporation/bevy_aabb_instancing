@@ -40,6 +40,8 @@ struct ScalarHueColorOptions {
     clamp_max: f32,
     hue_zero: f32,
     hue_slope: f32,
+    lightness: f32,
+    saturation: f32,
 }
 
 struct ColorOptions {
@@ -48,6 +50,7 @@ struct ColorOptions {
     _pad0: u32,
     _pad1: u32,
     scalar_hue: ScalarHueColorOptions,
+    emissive_gain: vec3<f32>,
 }
 
 struct ClippingPlaneRange {
@@ -138,9 +141,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
         let cmax = opt.clamp_max;
         let s = (clamp(scalar, cmin, cmax) - cmin) / (cmax - cmin);
         let hue = (360.0 + (opt.hue_zero + s * opt.hue_slope)) % 360.0;
-        let saturation = 1.0;
-        let lightness = 0.5;
-        out.color = vec4<f32>(hsl_to_nonlinear_srgb(hue, saturation, lightness), 1.0);
+        out.color = vec4<f32>(hsl_to_nonlinear_srgb(hue, opt.saturation, opt.lightness), 1.0);
     } else {
         // RGB
         out.color = vec4<f32>(
@@ -149,6 +150,10 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
             f32((cuboid.color >> 16u) & 0xFFu),
             255.0
         ) / 255.0;
+    }
+
+    if ((cuboid.meta_bits & 0x02u) != 0u) {
+        out.color *= vec4(color_options.emissive_gain, 1.0);
     }
 
     let cuboid_center = (cuboid.min + cuboid.max) / 2.0;
