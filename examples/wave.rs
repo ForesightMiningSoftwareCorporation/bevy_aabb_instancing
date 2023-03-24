@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_aabb_instancing::{
-    ColorOptions, ColorOptionsId, ColorOptionsMap, Cuboid, Cuboids, VertexPullingRenderPlugin,
-    COLOR_MODE_SCALAR_HUE,
+    Cuboid, CuboidMaterial, CuboidMaterialId, CuboidMaterialMap, Cuboids,
+    VertexPullingRenderPlugin, COLOR_MODE_SCALAR_HUE,
 };
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
@@ -17,8 +17,8 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>) {
-    let color_options_id = color_options_map.push(ColorOptions {
+fn setup(mut commands: Commands, mut material_map: ResMut<CuboidMaterialMap>) {
+    let material_id = material_map.push(CuboidMaterial {
         color_mode: COLOR_MODE_SCALAR_HUE,
         ..default()
     });
@@ -51,7 +51,7 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
             let aabb = cuboids.aabb();
             commands
                 .spawn(SpatialBundle::default())
-                .insert((cuboids, aabb, color_options_id));
+                .insert((cuboids, aabb, material_id));
         }
     }
 
@@ -68,9 +68,9 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
         ));
 }
 
-fn update_scalar_hue_options(time: Res<Time>, mut color_options_map: ResMut<ColorOptionsMap>) {
-    let options = color_options_map.get_mut(ColorOptionsId(1));
+fn update_scalar_hue_options(time: Res<Time>, mut material_map: ResMut<CuboidMaterialMap>) {
+    let material = material_map.get_mut(CuboidMaterialId(1));
     let tv = 1000.0 * (time.elapsed_seconds().sin() + 1.0);
-    options.scalar_hue.max_visible = tv;
-    options.scalar_hue.clamp_max = tv;
+    material.scalar_hue.max_visible = tv;
+    material.scalar_hue.clamp_max = tv;
 }

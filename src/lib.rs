@@ -35,11 +35,11 @@
 //! alt="Foresight Mining Software Corporation" width="480">
 
 mod clipping_planes;
-mod color_options;
 mod cuboids;
+mod material;
 mod vertex_pulling;
 
 pub use clipping_planes::*;
-pub use color_options::*;
 pub use cuboids::*;
+pub use material::*;
 pub use vertex_pulling::plugin::*;

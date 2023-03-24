@@ -33,7 +33,7 @@ struct View {
     height: f32,
 }
 
-struct ScalarHueColorOptions {
+struct ScalarHueOptions {
     min_visible: f32,
     max_visible: f32,
     clamp_min: f32,
@@ -44,12 +44,12 @@ struct ScalarHueColorOptions {
     saturation: f32,
 }
 
-struct ColorOptions {
+struct CuboidMaterial {
     color_mode: u32,
     wireframe: u32, // Any nonzero value means "on".
     _pad0: u32,
     _pad1: u32,
-    scalar_hue: ScalarHueColorOptions,
+    scalar_hue: ScalarHueOptions,
     emissive_gain: vec3<f32>,
 }
 
@@ -85,7 +85,7 @@ struct Transform {
 var<uniform> view: View;
 
 @group(1) @binding(0)
-var<uniform> color_options: ColorOptions;
+var<uniform> material: CuboidMaterial;
 
 @group(1) @binding(1)
 var<uniform> clipping_planes: ClippingPlaneRanges;
@@ -124,9 +124,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
         return discard_vertex();
     }
 
-    if (color_options.color_mode == 1u) {
+    if (material.color_mode == 1u) {
         // SCALAR HUE
-        let opt = color_options.scalar_hue;
+        let opt = material.scalar_hue;
 
         let scalar = bitcast<f32>(cuboid.color);
         if (scalar < opt.min_visible ||
@@ -153,7 +153,7 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     }
 
     if ((cuboid.meta_bits & 0x02u) != 0u) {
-        out.color *= vec4(color_options.emissive_gain, 1.0);
+        out.color *= vec4(material.emissive_gain, 1.0);
     }
 
     let cuboid_center = (cuboid.min + cuboid.max) / 2.0;
@@ -245,7 +245,7 @@ fn fragment(in: FragmentInput) -> FragmentOutput {
     let step = smoothstep(vec2<f32>(0.0), 2.0 * screen_derivative, dist_to_edge);
     let min_step = min(step.x, step.y);
 
-    if color_options.wireframe != 0u {
+    if material.wireframe != 0u {
         let edge_factor = mix(0.0, 1.0, min_step);
         if edge_factor > 0.99999 {
             discard;

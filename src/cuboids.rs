@@ -3,10 +3,10 @@ use bevy::{
     render::{primitives::Aabb, render_resource::ShaderType},
 };
 
-use crate::ColorOptionsId;
+use crate::CuboidMaterialId;
 
 /// Value that determines the color of a [`Cuboid`] based on the associated
-/// [`ColorOptions`](crate::ColorOptions).
+/// [`CuboidMaterial`](crate::CuboidMaterial).
 pub type Color = u32;
 
 /// Metadata encoded in 32 bits:
@@ -120,7 +120,7 @@ impl CuboidsTransform {
 
 #[derive(Bundle)]
 pub struct CuboidsBundle {
-    pub color_options_id: ColorOptionsId,
+    pub material_id: CuboidMaterialId,
     pub cuboids: Cuboids,
     #[bundle]
     pub spatial: SpatialBundle,

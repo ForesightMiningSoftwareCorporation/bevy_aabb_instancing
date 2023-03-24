@@ -13,7 +13,7 @@ pub(crate) struct CuboidBufferCache {
 
 #[derive(Default)]
 pub(crate) struct CachedCuboidBuffers {
-    pub color_options_index: u32,
+    pub material_index: u32,
     pub dirty: bool,
     pub enabled: bool,
     pub keep_alive: bool,

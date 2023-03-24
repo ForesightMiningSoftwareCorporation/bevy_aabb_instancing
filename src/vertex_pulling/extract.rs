@@ -2,8 +2,8 @@ use super::buffers::*;
 use super::cuboid_cache::CuboidBufferCache;
 use crate::clipping_planes::*;
 use crate::cuboids::*;
-use crate::ColorOptionsId;
-use crate::ColorOptionsMap;
+use crate::CuboidMaterialId;
+use crate::CuboidMaterialMap;
 
 use bevy::{prelude::*, render::Extract};
 
@@ -16,32 +16,33 @@ pub(crate) fn extract_cuboids(
             Entity,
             &Cuboids,
             &GlobalTransform,
-            &ColorOptionsId,
+            &CuboidMaterialId,
             Option<&ComputedVisibility>,
             Or<(Added<Cuboids>, Changed<Cuboids>)>,
         )>,
     >,
-    color_options: Extract<Res<ColorOptionsMap>>,
-    mut color_options_uniforms: ResMut<DynamicUniformBufferOfColorOptions>,
+    materials: Extract<Res<CuboidMaterialMap>>,
+    mut materials_uniforms: ResMut<DynamicUniformBufferOfCuboidMaterial>,
     mut cuboid_buffers: ResMut<CuboidBufferCache>,
     mut transform_uniforms: ResMut<DynamicUniformBufferOfCuboidTransforms>,
 ) {
     transform_uniforms.clear();
 
-    if color_options.is_empty() {
-        warn!("Cannot draw Cuboids with empty ColorOptionsMap");
+    if materials.is_empty() {
+        warn!("Cannot draw Cuboids with empty CuboidMaterialMap");
         return;
     }
 
-    // First extract color options so we can assign dynamic uniform indices to cuboids.
-    let color_options_indices = color_options.write_uniforms(&mut color_options_uniforms);
+    // First extract material so we can assign dynamic uniform indices to
+    // cuboids.
+    let materials_indices = materials.write_uniforms(&mut materials_uniforms);
 
     let mut extracted_entities = Vec::with_capacity(*prev_extracted_entities_size);
     for (
         entity,
         cuboids,
         transform,
-        color_options_id,
+        materials_id,
         maybe_visibility,
         instance_buffer_needs_update,
     ) in cuboids.iter()
@@ -65,7 +66,7 @@ pub(crate) fn extract_cuboids(
         if instance_buffer_needs_update {
             entry.instance_buffer.set(cuboids.instances.clone());
         }
-        entry.color_options_index = color_options_indices[color_options_id.0].0;
+        entry.material_index = materials_indices[materials_id.0].0;
         entry.dirty = instance_buffer_needs_update;
         entry.enabled = is_visible;
         entry.keep_alive = true;

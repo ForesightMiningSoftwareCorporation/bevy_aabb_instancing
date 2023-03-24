@@ -5,7 +5,7 @@ use bevy::{
     },
     prelude::*,
 };
-use bevy_aabb_instancing::{ColorOptionsId, Cuboid, Cuboids, VertexPullingRenderPlugin};
+use bevy_aabb_instancing::{CuboidMaterialId, Cuboid, Cuboids, VertexPullingRenderPlugin};
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
@@ -47,7 +47,7 @@ fn setup(mut commands: Commands) {
     let aabb = cuboids.aabb();
     commands
         .spawn(SpatialBundle::default())
-        .insert((cuboids, aabb, ColorOptionsId(0)));
+        .insert((cuboids, aabb, CuboidMaterialId(0)));
 
     commands
         .spawn((

@@ -13,36 +13,36 @@ pub type ColorMode = u32;
 /// Encode with `Color::as_rgba_u32`.
 pub const COLOR_MODE_RGB: ColorMode = 0;
 
-/// "Automatic" coloring based on scalar-valued `cuboid.color`. See [`ScalarHueColorOptions`].
+/// "Automatic" coloring based on scalar-valued `cuboid.color`. See [`ScalarHueOptions`].
 ///
 /// Encode with `u32::from_le_bytes(f32::to_le_bytes(x))`.
 pub const COLOR_MODE_SCALAR_HUE: ColorMode = 1;
 
-/// Denotes which [`ColorOptions`] to use when rendering
+/// Denotes which [`CuboidMaterial`] to use when rendering
 /// [`Cuboids`](crate::Cuboids).
 ///
-/// When options are modified, _all_ entities with the corresponding
-/// [`ColorOptionsId`] will be affected.
+/// When a material is modified, _all_ entities with the corresponding
+/// [`CuboidMaterialId`] will be affected.
 #[derive(Clone, Component, Copy, Eq, Hash, PartialEq)]
-pub struct ColorOptionsId(pub usize);
+pub struct CuboidMaterialId(pub usize);
 
 /// Shading options, constant for each draw call.
 #[derive(Clone, Debug, ShaderType)]
-pub struct ColorOptions {
+pub struct CuboidMaterial {
     pub color_mode: ColorMode,
     /// Nonzero values imply that _only_ cuboid edges will be shaded.
     /// [`VertexPullingRenderPlugin::edges`](crate::VertexPullingRenderPlugin)
     /// must be `true` for this to take effect.
     pub wireframe: u32,
     #[align(16)]
-    pub scalar_hue: ScalarHueColorOptions,
+    pub scalar_hue: ScalarHueOptions,
 
     /// An extra factor that multiplies a cuboid's color when the "emissive" bit
-    /// is set.
+    /// on [`MetaBits`](crate::cuboids::MetaBits) is set.
     pub emissive_gain: Vec3,
 }
 
-impl Default for ColorOptions {
+impl Default for CuboidMaterial {
     fn default() -> Self {
         Self {
             color_mode: COLOR_MODE_RGB,
@@ -66,7 +66,7 @@ impl Default for ColorOptions {
 ///
 /// These options are only available in [`COLOR_MODE_SCALAR_HUE`].
 #[derive(Clone, Debug, ShaderType)]
-pub struct ScalarHueColorOptions {
+pub struct ScalarHueOptions {
     /// Cuboids with `cuboid.color < min_visible` will be clipped.
     pub min_visible: f32,
     /// Cuboids with `cuboid.color > max_visible` will be clipped.
@@ -81,7 +81,7 @@ pub struct ScalarHueColorOptions {
     pub saturation: f32,
 }
 
-impl Default for ScalarHueColorOptions {
+impl Default for ScalarHueOptions {
     fn default() -> Self {
         Self {
             min_visible: 0.0,
@@ -96,57 +96,57 @@ impl Default for ScalarHueColorOptions {
     }
 }
 
-/// Resource used to create and modify a set of [`ColorOptions`] that are
+/// Resource used to create and modify a set of [`CuboidMaterial`] that are
 /// automatically synced to shader uniforms.
 #[derive(Clone, Debug, Resource)]
-pub struct ColorOptionsMap {
+pub struct CuboidMaterialMap {
     // Consumed every frame during GPU buffering.
-    options: Vec<ColorOptions>,
+    materials: Vec<CuboidMaterial>,
 }
 
-impl Default for ColorOptionsMap {
+impl Default for CuboidMaterialMap {
     fn default() -> Self {
         Self {
-            options: vec![default()],
+            materials: vec![default()],
         }
     }
 }
 
-impl ColorOptionsMap {
+impl CuboidMaterialMap {
     pub fn is_empty(&self) -> bool {
-        self.options.is_empty()
+        self.materials.is_empty()
     }
 
     pub fn clear(&mut self) {
-        self.options.clear();
+        self.materials.clear();
     }
 
-    pub fn get(&self, id: ColorOptionsId) -> &ColorOptions {
-        &self.options[id.0]
+    pub fn get(&self, id: CuboidMaterialId) -> &CuboidMaterial {
+        &self.materials[id.0]
     }
 
-    pub fn get_mut(&mut self, id: ColorOptionsId) -> &mut ColorOptions {
-        &mut self.options[id.0]
+    pub fn get_mut(&mut self, id: CuboidMaterialId) -> &mut CuboidMaterial {
+        &mut self.materials[id.0]
     }
 
-    pub fn push(&mut self, options: ColorOptions) -> ColorOptionsId {
-        let id = ColorOptionsId(self.options.len());
-        self.options.push(options);
+    pub fn push(&mut self, material: CuboidMaterial) -> CuboidMaterialId {
+        let id = CuboidMaterialId(self.materials.len());
+        self.materials.push(material);
         id
     }
 
     pub(crate) fn write_uniforms(
         &self,
-        uniforms: &mut DynamicUniformBuffer<ColorOptions>,
-    ) -> Vec<ColorOptionsUniformIndex> {
+        uniforms: &mut DynamicUniformBuffer<CuboidMaterial>,
+    ) -> Vec<CuboidMaterialUniformIndex> {
         uniforms.clear();
         let mut indices = Vec::new();
-        for options in self.options.iter() {
-            indices.push(ColorOptionsUniformIndex(uniforms.push(options.clone())));
+        for material in self.materials.iter() {
+            indices.push(CuboidMaterialUniformIndex(uniforms.push(material.clone())));
         }
         indices
     }
 }
 
 #[derive(Clone, Copy, Debug, Component)]
-pub(crate) struct ColorOptionsUniformIndex(pub u32);
+pub(crate) struct CuboidMaterialUniformIndex(pub u32);

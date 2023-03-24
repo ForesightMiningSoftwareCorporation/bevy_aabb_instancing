@@ -4,11 +4,11 @@ use super::draw::{AuxiliaryMeta, DrawCuboids, TransformsMeta, ViewMeta};
 use super::extract::{extract_clipping_planes, extract_cuboids};
 use super::pipeline::{CuboidsPipelines, CuboidsShaderDefs, VERTEX_PULLING_SHADER_HANDLE};
 use super::prepare::{
-    prepare_auxiliary_bind_group, prepare_clipping_planes, prepare_color_options,
-    prepare_cuboid_transforms, prepare_cuboids, prepare_cuboids_view_bind_group,
+    prepare_auxiliary_bind_group, prepare_clipping_planes, prepare_cuboid_transforms,
+    prepare_cuboids, prepare_cuboids_view_bind_group, prepare_materials,
 };
 use super::queue::queue_cuboids;
-use crate::ColorOptionsMap;
+use crate::CuboidMaterialMap;
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
 use bevy::render::view::ViewSet;
@@ -23,7 +23,7 @@ pub struct VertexPullingRenderPlugin {
 
 impl Plugin for VertexPullingRenderPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ColorOptionsMap>();
+        app.init_resource::<CuboidMaterialMap>();
 
         app.world.resource_mut::<Assets<Shader>>().set_untracked(
             VERTEX_PULLING_SHADER_HANDLE,
@@ -56,7 +56,7 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<AuxiliaryMeta>()
             .init_resource::<CuboidBufferCache>()
             .init_resource::<CuboidsPipelines>()
-            .init_resource::<DynamicUniformBufferOfColorOptions>()
+            .init_resource::<DynamicUniformBufferOfCuboidMaterial>()
             .init_resource::<DynamicUniformBufferOfCuboidTransforms>()
             .init_resource::<TransformsMeta>()
             .init_resource::<UniformBufferOfGpuClippingPlaneRanges>()
@@ -64,10 +64,10 @@ impl Plugin for VertexPullingRenderPlugin {
             .add_systems((extract_cuboids, extract_clipping_planes).in_schedule(ExtractSchedule))
             .add_systems(
                 (
-                    prepare_color_options,
+                    prepare_materials,
                     prepare_clipping_planes,
                     prepare_auxiliary_bind_group
-                        .after(prepare_color_options)
+                        .after(prepare_materials)
                         .after(prepare_clipping_planes),
                     prepare_cuboid_transforms,
                     prepare_cuboids,

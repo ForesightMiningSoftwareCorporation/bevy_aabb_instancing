@@ -21,13 +21,13 @@ pub(crate) fn prepare_clipping_planes(
     clipping_plane_uniform.write_buffer(&render_device, &render_queue);
 }
 
-pub(crate) fn prepare_color_options(
+pub(crate) fn prepare_materials(
     render_device: Res<RenderDevice>,
     render_queue: Res<RenderQueue>,
-    mut color_options_uniforms: ResMut<DynamicUniformBufferOfColorOptions>,
+    mut material_uniforms: ResMut<DynamicUniformBufferOfCuboidMaterial>,
 ) {
     // Values already pushed in extract stage.
-    color_options_uniforms.write_buffer(&render_device, &render_queue);
+    material_uniforms.write_buffer(&render_device, &render_queue);
 }
 
 pub(crate) fn prepare_auxiliary_bind_group(
@@ -35,12 +35,11 @@ pub(crate) fn prepare_auxiliary_bind_group(
     render_device: Res<RenderDevice>,
     mut aux_meta: ResMut<AuxiliaryMeta>,
     clipping_plane_uniform: Res<UniformBufferOfGpuClippingPlaneRanges>,
-    color_options_uniform: Res<DynamicUniformBufferOfColorOptions>,
+    material_uniform: Res<DynamicUniformBufferOfCuboidMaterial>,
 ) {
-    if let (Some(color_binding), Some(planes_binding)) = (
-        color_options_uniform.binding(),
-        clipping_plane_uniform.binding(),
-    ) {
+    if let (Some(color_binding), Some(planes_binding)) =
+        (material_uniform.binding(), clipping_plane_uniform.binding())
+    {
         aux_meta.bind_group = Some(render_device.create_bind_group(&BindGroupDescriptor {
             label: Some("auxiliary_bind_group"),
             layout: &pipeline.aux_layout,

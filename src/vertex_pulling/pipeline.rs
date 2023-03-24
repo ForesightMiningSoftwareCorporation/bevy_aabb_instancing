@@ -1,5 +1,5 @@
 use crate::clipping_planes::GpuClippingPlaneRanges;
-use crate::{cuboids::CuboidsTransform, ColorOptions};
+use crate::{cuboids::CuboidsTransform, CuboidMaterial};
 
 use bevy::render::render_resource::ShaderDefVal;
 use bevy::render::texture::BevyDefault;
@@ -65,7 +65,7 @@ impl FromWorld for CuboidsPipelines {
                     ty: BindingType::Buffer {
                         ty: BufferBindingType::Uniform,
                         has_dynamic_offset: true,
-                        min_binding_size: Some(ColorOptions::min_size()),
+                        min_binding_size: Some(CuboidMaterial::min_size()),
                     },
                     count: None,
                 },

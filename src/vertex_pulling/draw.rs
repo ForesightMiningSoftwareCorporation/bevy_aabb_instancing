@@ -53,7 +53,7 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetCuboidsViewBindGroup<
     }
 }
 
-/// Hold the bind group for color options and clipping planes.
+/// Holds the bind group for materials and clipping planes.
 #[derive(Default, Resource)]
 pub struct AuxiliaryMeta {
     pub bind_group: Option<BindGroup>,
@@ -80,7 +80,7 @@ impl<P: PhaseItem, const I: usize> RenderCommand<P> for SetAuxBindGroup<I> {
         pass.set_bind_group(
             I,
             aux_meta.bind_group.as_ref().unwrap(),
-            &[entry.color_options_index],
+            &[entry.material_index],
         );
         RenderCommandResult::Success
     }
