@@ -49,10 +49,10 @@ fn setup(mut commands: Commands, mut color_options_map: ResMut<ColorOptionsMap>)
                     let h = 0.01 * d;
                     let min = c - Vec3::new(0.5, h, 0.5);
                     let max = c + Vec3::new(0.5, h, 0.5);
-                    let visible = true;
-                    let depth_jitter = 0;
                     let scalar_color = u32::from_le_bytes(d.to_le_bytes());
-                    instances.push(Cuboid::new(min, max, scalar_color, visible, depth_jitter));
+                    let mut cuboid = Cuboid::new(min, max, scalar_color);
+                    cuboid.set_depth_bias(0);
+                    instances.push(cuboid);
                 }
             }
             let cuboids = Cuboids::new(instances);

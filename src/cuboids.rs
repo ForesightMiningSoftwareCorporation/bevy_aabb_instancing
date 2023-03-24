@@ -29,37 +29,33 @@ pub struct Cuboid {
 }
 
 impl Cuboid {
-    pub fn new(minimum: Vec3, maximum: Vec3, color: u32, visible: bool, depth_bias: u16) -> Self {
+    pub fn new(minimum: Vec3, maximum: Vec3, color: u32) -> Self {
         assert_eq!(std::mem::size_of::<Cuboid>(), 32);
-        let mut me = Self {
+        Self {
             minimum,
             meta_bits: 0,
             maximum,
             color,
-        };
-        if visible {
-            me.make_visible();
-        } else {
-            me.make_invisible();
         }
-        me.set_depth_bias(depth_bias);
-        me
     }
 
     #[inline]
-    pub fn make_visible(&mut self) {
+    pub fn make_visible(&mut self) -> &mut Self {
         self.meta_bits &= !1;
+        self
     }
 
     #[inline]
-    pub fn make_invisible(&mut self) {
+    pub fn make_invisible(&mut self) -> &mut Self {
         self.meta_bits |= 1;
+        self
     }
 
     #[inline]
-    pub fn set_depth_bias(&mut self, bias: u16) {
+    pub fn set_depth_bias(&mut self, bias: u16) -> &mut Self {
         self.meta_bits &= !0xFFFF0000; // clear
         self.meta_bits |= (bias as u32) << 16; // set
+        self
     }
 }
 
