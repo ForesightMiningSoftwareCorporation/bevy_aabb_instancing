@@ -195,9 +195,9 @@ fn vertex(@builtin(vertex_index) vertex_index: u32, @builtin(instance_index) ins
     out.clip_position = ndc_position;
 
     // This depth biasing avoids Z-fighting when cuboids have overlapping faces.
-    let depth_bias_eps = 0.00000008;
-    let depth_bias_int = i32(cuboid.meta_bits >> 16u) - i32(1u << 15u);
-    let nudge_z = (ndc_position.z / ndc_position.w) * (1.0 + f32(depth_bias_int) * depth_bias_eps);
+    let depth_bias_eps = 8e-8;
+    let depth_bias = f32(cuboid.meta_bits >> 16u) * depth_bias_eps;
+    let nudge_z = (ndc_position.z / ndc_position.w) * (1.0 - depth_bias);
     out.clip_position.z = nudge_z * ndc_position.w;
 
     #ifdef OUTLINES

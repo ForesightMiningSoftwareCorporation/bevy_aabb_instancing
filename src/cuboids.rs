@@ -17,7 +17,7 @@ pub type Color = u32;
 ///     - bits 2-7 = unused
 /// - `0x0000FF00` = unused
 /// - `0xFFFF0000` = depth bias (u16)
-///   - Multiplies the depth of each cuboid vertex by `1 + bias * eps` where
+///   - Multiplies the depth of each cuboid vertex by `1 - bias * eps` where
 ///     `eps = 8e-8`. This can be used with random biases to avoid Z-fighting.
 pub type MetaBits = u32;
 
@@ -68,7 +68,7 @@ impl Cuboid {
 
     #[inline]
     pub fn set_depth_bias(&mut self, bias: u16) -> &mut Self {
-        self.meta_bits &= !0xFFFF0000; // clear
+        self.meta_bits &= 0x0000FFFF; // clear
         self.meta_bits |= (bias as u32) << 16; // set
         self
     }
