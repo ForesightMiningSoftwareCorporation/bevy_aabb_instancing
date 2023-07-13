@@ -12,8 +12,8 @@ use crate::CuboidMaterialMap;
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
 use bevy::render::view::ViewSet;
-use bevy::render::RenderSet;
 use bevy::render::{render_phase::AddRenderCommand, RenderApp};
+use bevy::render::{Render, RenderSet};
 
 /// Renders the [`Cuboids`](crate::Cuboids) component using the "vertex pulling" technique.
 #[derive(Default)]
@@ -27,18 +27,20 @@ impl Plugin for VertexPullingRenderPlugin {
 
         app.world.resource_mut::<Assets<Shader>>().set_untracked(
             VERTEX_PULLING_SHADER_HANDLE,
-            Shader::from_wgsl(include_str!("vertex_pulling.wgsl")),
+            Shader::from_wgsl(include_str!("vertex_pulling.wgsl"), file!()),
         );
         {
             use super::index_buffer::{CuboidsIndexBuffer, CUBE_INDICES_HANDLE};
             use bevy::render::render_asset::RenderAssetPlugin;
             app.add_asset::<CuboidsIndexBuffer>()
-                .add_plugin(RenderAssetPlugin::<CuboidsIndexBuffer>::default());
+                .add_plugins(RenderAssetPlugin::<CuboidsIndexBuffer>::default());
             app.world
                 .resource_mut::<Assets<CuboidsIndexBuffer>>()
                 .set_untracked(CUBE_INDICES_HANDLE, CuboidsIndexBuffer);
         }
+    }
 
+    fn finish(&self, app: &mut App) {
         let maybe_msaa = app.world.get_resource::<Msaa>().cloned();
         let render_app = app.sub_app_mut(RenderApp);
 
@@ -61,8 +63,9 @@ impl Plugin for VertexPullingRenderPlugin {
             .init_resource::<TransformsMeta>()
             .init_resource::<UniformBufferOfGpuClippingPlaneRanges>()
             .init_resource::<ViewMeta>()
-            .add_systems((extract_cuboids, extract_clipping_planes).in_schedule(ExtractSchedule))
+            .add_systems(ExtractSchedule, (extract_cuboids, extract_clipping_planes))
             .add_systems(
+                Render,
                 (
                     prepare_materials,
                     prepare_clipping_planes,
@@ -75,6 +78,6 @@ impl Plugin for VertexPullingRenderPlugin {
                 )
                     .in_set(RenderSet::Prepare),
             )
-            .add_system(queue_cuboids.in_set(RenderSet::Queue));
+            .add_systems(Render, queue_cuboids.in_set(RenderSet::Queue));
     }
 }

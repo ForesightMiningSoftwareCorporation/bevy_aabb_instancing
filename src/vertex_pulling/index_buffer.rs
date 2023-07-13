@@ -2,7 +2,7 @@ use bevy::{
     core::cast_slice,
     ecs::system::lifetimeless::SRes,
     prelude::HandleUntyped,
-    reflect::TypeUuid,
+    reflect::{TypePath, TypeUuid},
     render::{
         render_asset::RenderAsset,
         render_resource::{Buffer, BufferInitDescriptor, BufferUsages},
@@ -10,7 +10,7 @@ use bevy::{
     },
 };
 
-#[derive(Default, TypeUuid)]
+#[derive(Default, TypeUuid, TypePath)]
 #[uuid = "8f6d78a6-fffe-4e54-81db-08b0739a947a"]
 pub struct CuboidsIndexBuffer;
 

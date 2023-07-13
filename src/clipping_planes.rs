@@ -24,7 +24,6 @@ impl Default for ClippingPlaneRange {
 #[derive(Bundle, Default)]
 pub struct ClippingPlaneBundle {
     pub range: ClippingPlaneRange,
-    #[bundle]
     pub transform: TransformBundle,
 }
 

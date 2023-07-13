@@ -9,11 +9,13 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(Msaa::Off)
-        .add_plugin(VertexPullingRenderPlugin { outlines: true })
-        .add_plugin(LookTransformPlugin)
-        .add_plugin(FpsCameraPlugin::default())
-        .add_startup_system(setup)
-        .add_system(update_scalar_hue_options)
+        .add_plugins((
+            VertexPullingRenderPlugin { outlines: true },
+            LookTransformPlugin,
+            FpsCameraPlugin::default(),
+        ))
+        .add_systems(Startup, setup)
+        .add_systems(Update, update_scalar_hue_options)
         .run();
 }
 

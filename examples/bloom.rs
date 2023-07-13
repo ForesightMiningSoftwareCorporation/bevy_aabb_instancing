@@ -13,10 +13,12 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(Msaa::Off)
-        .add_plugin(VertexPullingRenderPlugin { outlines: true })
-        .add_plugin(LookTransformPlugin)
-        .add_plugin(FpsCameraPlugin::default())
-        .add_startup_system(setup)
+        .add_plugins((
+            VertexPullingRenderPlugin { outlines: true },
+            LookTransformPlugin,
+            FpsCameraPlugin::default(),
+        ))
+        .add_systems(Startup, setup)
         .run();
 }
 
