@@ -1,3 +1,5 @@
+#import bevy_render::view View
+
 fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32> {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB
     let chroma = (1.0 - abs(2.0 * lightness - 1.0)) * saturation;
@@ -19,18 +21,6 @@ fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32>
     }
     let lightness_match = lightness - chroma / 2.0;
     return rgb_temp + lightness_match;
-}
-
-struct View {
-    view_proj: mat4x4<f32>,
-    inverse_view_proj: mat4x4<f32>,
-    view: mat4x4<f32>,
-    inverse_view: mat4x4<f32>,
-    projection: mat4x4<f32>,
-    inverse_projection: mat4x4<f32>,
-    world_position: vec3<f32>,
-    width: f32,
-    height: f32,
 }
 
 struct ScalarHueOptions {

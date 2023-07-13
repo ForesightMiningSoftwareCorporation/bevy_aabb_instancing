@@ -15,7 +15,7 @@ repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy-aabb-in
 trace = ["bevy/trace_chrome"]
 
 [dependencies.bevy]
-version = "0.10"
+version = "0.11"
 default-features = false
 features = ["bevy_asset", "bevy_core_pipeline", "bevy_render", "x11"]
 
@@ -31,3 +31,6 @@ path = "examples/wave.rs"
 name = "bloom"
 path = "examples/bloom.rs"
 required-features = ["bevy/ktx2", "bevy/tonemapping_luts", "bevy/zstd"]
+
+[patch.crates-io]
+smooth-bevy-cameras = { git = "https://github.com/bonsairobo/smooth-bevy-cameras.git", branch = "main" }
