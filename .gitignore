@@ -2,3 +2,6 @@
 /Cargo.lock
 /.idea
 /.vscode
+
+# Silly Mac thing so sorry.
+.DS_Store
