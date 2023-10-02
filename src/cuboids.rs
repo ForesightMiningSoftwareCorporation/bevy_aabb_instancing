@@ -122,6 +122,5 @@ impl CuboidsTransform {
 pub struct CuboidsBundle {
     pub material_id: CuboidMaterialId,
     pub cuboids: Cuboids,
-    #[bundle]
     pub spatial: SpatialBundle,
 }
