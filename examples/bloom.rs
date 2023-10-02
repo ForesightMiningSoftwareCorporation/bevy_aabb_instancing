@@ -5,18 +5,20 @@ use bevy::{
     },
     prelude::*,
 };
-use bevy_aabb_instancing::{CuboidMaterialId, Cuboid, Cuboids, VertexPullingRenderPlugin};
+use bevy_aabb_instancing::{Cuboid, CuboidMaterialId, Cuboids, VertexPullingRenderPlugin};
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(Color::BLACK))
         .insert_resource(Msaa::Off)
-        .add_plugin(VertexPullingRenderPlugin { outlines: true })
-        .add_plugin(LookTransformPlugin)
-        .add_plugin(FpsCameraPlugin::default())
-        .add_startup_system(setup)
+        .add_plugins((
+            DefaultPlugins,
+            VertexPullingRenderPlugin { outlines: true },
+            LookTransformPlugin,
+            FpsCameraPlugin::default(),
+        ))
+        .add_systems(Startup, setup)
         .run();
 }
 
