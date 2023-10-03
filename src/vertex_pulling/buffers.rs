@@ -5,7 +5,9 @@ use bevy::prelude::{Deref, DerefMut, Resource};
 use bevy::render::render_resource::{DynamicUniformBuffer, UniformBuffer};
 
 #[derive(Resource, Default, Deref, DerefMut)]
-pub(crate) struct DynamicUniformBufferOfCuboidMaterial(pub(crate) DynamicUniformBuffer<CuboidMaterial>);
+pub(crate) struct DynamicUniformBufferOfCuboidMaterial(
+    pub(crate) DynamicUniformBuffer<CuboidMaterial>,
+);
 
 #[derive(Resource, Default, Deref, DerefMut)]
 pub(crate) struct DynamicUniformBufferOfCuboidTransforms(
