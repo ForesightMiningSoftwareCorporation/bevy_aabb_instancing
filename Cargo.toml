@@ -21,7 +21,7 @@ features = ["bevy_asset", "bevy_core_pipeline", "bevy_render", "x11"]
 
 [dev-dependencies]
 rand = "0.8"
-smooth-bevy-cameras = "0.8"
+smooth-bevy-cameras = "0.9"
 
 [[example]]
 name = "wave"
@@ -31,6 +31,3 @@ path = "examples/wave.rs"
 name = "bloom"
 path = "examples/bloom.rs"
 required-features = ["bevy/ktx2", "bevy/tonemapping_luts", "bevy/zstd"]
-
-[patch.crates-io]
-smooth-bevy-cameras = { git = "https://github.com/bonsairobo/smooth-bevy-cameras.git", branch = "main" }
