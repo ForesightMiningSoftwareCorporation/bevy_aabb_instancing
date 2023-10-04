@@ -5,7 +5,7 @@ use bevy::{
     },
     prelude::*,
 };
-use bevy_aabb_instancing::{CuboidMaterialId, Cuboid, Cuboids, VertexPullingRenderPlugin};
+use bevy_aabb_instancing::{Cuboid, CuboidMaterialId, Cuboids, VertexPullingRenderPlugin};
 use smooth_bevy_cameras::{controllers::fps::*, LookTransformPlugin};
 
 fn main() {
