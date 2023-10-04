@@ -58,10 +58,24 @@ impl Default for CuboidMaterial {
 ///
 /// HSL hue is determined as:
 /// ```
+/// use bevy_aabb_instancing::ScalarHueOptions;
+///
+/// fn clamp<T: PartialOrd>(value: T, min: T, max: T) -> T {
+///   if value < min {
+///     min
+///   } else if value > max {
+///     max
+///   } else {
+///     value
+///   }
+/// }
+///
+/// let hue_options = ScalarHueOptions::default();
 /// // Normalize scalar value.
-/// let s = (clamp(scalar, clamp_min, clamp_max) - clamp_min) / (clamp_max - clamp_min);
+/// let scalar = 12.2;
+/// let s = (clamp(scalar, hue_options.clamp_min, hue_options.clamp_max) - hue_options.clamp_min) / (hue_options.clamp_max - hue_options.clamp_min);
 /// // Choose hue linearly.
-/// let hue = (360.0 + hue_zero + s * hue_slope) % 360.0;
+/// let hue = (360.0 + hue_options.hue_zero + s * hue_options.hue_slope) % 360.0;
 /// ```
 ///
 /// These options are only available in [`COLOR_MODE_SCALAR_HUE`].
