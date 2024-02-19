@@ -5,7 +5,6 @@ use bevy::render::render_resource::ShaderDefVal;
 use bevy::render::texture::BevyDefault;
 use bevy::{
     prelude::*,
-    reflect::TypeUuid,
     render::{
         mesh::PrimitiveTopology,
         render_resource::{
@@ -32,8 +31,8 @@ pub(crate) struct CuboidsPipelines {
     pub view_layout: BindGroupLayout,
 }
 
-pub(crate) const VERTEX_PULLING_SHADER_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(Shader::TYPE_UUID, 17343092250772987267);
+pub(crate) const VERTEX_PULLING_SHADER_HANDLE: Handle<Shader> =
+    Handle::weak_from_u128(17343092250772987267);
 
 impl FromWorld for CuboidsPipelines {
     fn from_world(world: &mut World) -> Self {
@@ -122,13 +121,13 @@ impl FromWorld for CuboidsPipelines {
             cuboids_layout.clone(),
         ];
         let vertex = VertexState {
-            shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
+            shader: VERTEX_PULLING_SHADER_HANDLE,
             shader_defs: shader_defs.vertex.clone(),
             entry_point: "vertex".into(),
             buffers: vec![],
         };
         let fragment_target = |texture_format| FragmentState {
-            shader: VERTEX_PULLING_SHADER_HANDLE.typed(),
+            shader: VERTEX_PULLING_SHADER_HANDLE,
             shader_defs: shader_defs.fragment.clone(),
             entry_point: "fragment".into(),
             targets: vec![Some(ColorTargetState {

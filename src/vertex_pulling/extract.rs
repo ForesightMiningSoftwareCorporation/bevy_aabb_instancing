@@ -17,7 +17,7 @@ pub(crate) fn extract_cuboids(
             &Cuboids,
             &GlobalTransform,
             &CuboidMaterialId,
-            Option<&ComputedVisibility>,
+            Option<&ViewVisibility>,
             Or<(Added<Cuboids>, Changed<Cuboids>)>,
         )>,
     >,
@@ -58,9 +58,7 @@ pub(crate) fn extract_cuboids(
 
         let transform = CuboidsTransform::from_matrix(transform.compute_matrix());
 
-        let is_visible = maybe_visibility
-            .map(ComputedVisibility::is_visible)
-            .unwrap_or(true);
+        let is_visible = maybe_visibility.map(|vis| vis.get()).unwrap_or(true);
 
         let entry = cuboid_buffers.entries.entry(entity).or_default();
         if instance_buffer_needs_update {

@@ -1,7 +1,7 @@
 use bevy::{
+    asset::{Asset, Handle},
     core::cast_slice,
     ecs::system::lifetimeless::SRes,
-    prelude::HandleUntyped,
     reflect::{TypePath, TypeUuid},
     render::{
         render_asset::RenderAsset,
@@ -10,12 +10,12 @@ use bevy::{
     },
 };
 
-#[derive(Default, TypeUuid, TypePath)]
+#[derive(Asset, Default, TypeUuid, TypePath)]
 #[uuid = "8f6d78a6-fffe-4e54-81db-08b0739a947a"]
 pub struct CuboidsIndexBuffer;
 
-pub(crate) const CUBE_INDICES_HANDLE: HandleUntyped =
-    HandleUntyped::weak_from_u64(CuboidsIndexBuffer::TYPE_UUID, 17343092250772987267);
+pub(crate) const CUBE_INDICES_HANDLE: Handle<CuboidsIndexBuffer> =
+    Handle::weak_from_u128(17343092250772987267);
 
 // Only 3 faces are actually drawn.
 const NUM_CUBE_INDICES_USIZE: usize = 3 * 3 * 2;

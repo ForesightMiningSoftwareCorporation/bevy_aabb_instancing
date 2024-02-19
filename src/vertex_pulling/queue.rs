@@ -37,6 +37,8 @@ pub(crate) fn queue_cuboids(
                         entity,
                         distance: inverse_view_row_2.dot(entry.position.extend(1.0)),
                         draw_function: draw_cuboids,
+                        batch_range: 0..1,
+                        dynamic_offset: None,
                     });
                 }
             }

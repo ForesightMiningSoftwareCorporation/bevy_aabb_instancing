@@ -9,9 +9,10 @@ use super::prepare::{
 };
 use super::queue::queue_cuboids;
 use crate::CuboidMaterialMap;
+use bevy::asset::load_internal_asset;
 use bevy::core_pipeline::core_3d::Opaque3d;
 use bevy::prelude::*;
-use bevy::render::view::ViewSet;
+use bevy::render::view::prepare_view_uniforms;
 use bevy::render::{render_phase::AddRenderCommand, RenderApp};
 use bevy::render::{Render, RenderSet};
 
@@ -25,18 +26,20 @@ impl Plugin for VertexPullingRenderPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CuboidMaterialMap>();
 
-        app.world.resource_mut::<Assets<Shader>>().set_untracked(
+        load_internal_asset!(
+            app,
             VERTEX_PULLING_SHADER_HANDLE,
-            Shader::from_wgsl(include_str!("vertex_pulling.wgsl"), file!()),
+            "vertex_pulling.wgsl",
+            Shader::from_wgsl
         );
         {
             use super::index_buffer::{CuboidsIndexBuffer, CUBE_INDICES_HANDLE};
             use bevy::render::render_asset::RenderAssetPlugin;
-            app.add_asset::<CuboidsIndexBuffer>()
+            app.init_asset::<CuboidsIndexBuffer>()
                 .add_plugins(RenderAssetPlugin::<CuboidsIndexBuffer>::default());
             app.world
                 .resource_mut::<Assets<CuboidsIndexBuffer>>()
-                .set_untracked(CUBE_INDICES_HANDLE, CuboidsIndexBuffer);
+                .insert(CUBE_INDICES_HANDLE, CuboidsIndexBuffer);
         }
     }
 
@@ -74,7 +77,7 @@ impl Plugin for VertexPullingRenderPlugin {
                         .after(prepare_clipping_planes),
                     prepare_cuboid_transforms,
                     prepare_cuboids,
-                    prepare_cuboids_view_bind_group.after(ViewSet::PrepareUniforms),
+                    prepare_cuboids_view_bind_group.after(prepare_view_uniforms),
                 )
                     .in_set(RenderSet::Prepare),
             )

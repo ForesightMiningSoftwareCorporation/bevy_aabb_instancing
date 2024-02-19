@@ -15,7 +15,7 @@ fn main() {
             FpsCameraPlugin::default(),
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, update_scalar_hue_options)
+        .add_systems(Update, (update_scalar_hue_options, toggle_fps_controller))
         .run();
 }
 
@@ -62,6 +62,7 @@ fn setup(mut commands: Commands, mut material_map: ResMut<CuboidMaterialMap>) {
         .insert(FpsCameraBundle::new(
             FpsCameraController {
                 translate_sensitivity: 200.0,
+                enabled: false,
                 ..Default::default()
             },
             Vec3::new(0.0, 100.0, 0.0),
@@ -75,4 +76,13 @@ fn update_scalar_hue_options(time: Res<Time>, mut material_map: ResMut<CuboidMat
     let tv = 1000.0 * (time.elapsed_seconds().sin() + 1.0);
     material.scalar_hue.max_visible = tv;
     material.scalar_hue.clamp_max = tv;
+}
+
+fn toggle_fps_controller(
+    mouse_button_input: Res<Input<MouseButton>>,
+    mut controller: Query<&mut FpsCameraController>,
+) {
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        controller.single_mut().enabled = true;
+    }
 }
