@@ -3,6 +3,7 @@ use bevy::{
         bloom::{BloomCompositeMode, BloomPrefilterSettings, BloomSettings},
         tonemapping::Tonemapping,
     },
+    input::mouse,
     prelude::*,
 };
 use bevy_aabb_instancing::{Cuboid, CuboidMaterialId, Cuboids, VertexPullingRenderPlugin};
@@ -19,6 +20,7 @@ fn main() {
             FpsCameraPlugin::default(),
         ))
         .add_systems(Startup, setup)
+        .add_systems(Update, toggle_fps_controller)
         .run();
 }
 
@@ -76,10 +78,20 @@ fn setup(mut commands: Commands) {
         .insert(FpsCameraBundle::new(
             FpsCameraController {
                 translate_sensitivity: 10.0,
+                enabled: false,
                 ..Default::default()
             },
             Vec3::splat(10.0),
             Vec3::ZERO,
             Vec3::Y,
         ));
+}
+
+fn toggle_fps_controller(
+    mouse_button_input: Res<Input<MouseButton>>,
+    mut controller: Query<&mut FpsCameraController>,
+) {
+    if mouse_button_input.just_pressed(MouseButton::Left) {
+        controller.single_mut().enabled = true;
+    }
 }
