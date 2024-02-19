@@ -10,7 +10,7 @@ use bevy::{
     },
 };
 
-#[derive(Default, TypeUuid, TypePath, Asset)]
+#[derive(Asset, Default, TypeUuid, TypePath)]
 #[uuid = "8f6d78a6-fffe-4e54-81db-08b0739a947a"]
 pub struct CuboidsIndexBuffer;
 
