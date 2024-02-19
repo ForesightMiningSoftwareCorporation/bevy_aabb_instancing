@@ -1,4 +1,4 @@
-#import bevy_render::view View
+#import bevy_render::view::View
 
 fn hsl_to_nonlinear_srgb(hue: f32, saturation: f32, lightness: f32) -> vec3<f32> {
     // https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB

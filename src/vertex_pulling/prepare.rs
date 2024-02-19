@@ -3,10 +3,10 @@ use super::cuboid_cache::CuboidBufferCache;
 use super::draw::{AuxiliaryMeta, TransformsMeta, ViewMeta};
 use super::pipeline::CuboidsPipelines;
 
+use bevy::render::render_resource::BindGroupEntries;
 use bevy::{
     prelude::*,
     render::{
-        render_resource::{BindGroupDescriptor, BindGroupEntry},
         renderer::{RenderDevice, RenderQueue},
         view::ViewUniforms,
     },
@@ -40,20 +40,11 @@ pub(crate) fn prepare_auxiliary_bind_group(
     if let (Some(color_binding), Some(planes_binding)) =
         (material_uniform.binding(), clipping_plane_uniform.binding())
     {
-        aux_meta.bind_group = Some(render_device.create_bind_group(&BindGroupDescriptor {
-            label: Some("auxiliary_bind_group"),
-            layout: &pipeline.aux_layout,
-            entries: &[
-                BindGroupEntry {
-                    binding: 0,
-                    resource: color_binding,
-                },
-                BindGroupEntry {
-                    binding: 1,
-                    resource: planes_binding,
-                },
-            ],
-        }));
+        aux_meta.bind_group = Some(render_device.create_bind_group(
+            "auxiliary_bind_group",
+            &pipeline.aux_layout,
+            &BindGroupEntries::sequential((color_binding, planes_binding)),
+        ));
     }
 }
 
@@ -72,14 +63,11 @@ pub(crate) fn prepare_cuboid_transforms(
     if let Some(transforms_binding) = transform_uniforms.binding() {
         let create_bind_group_span = bevy::log::info_span!("prepare_cuboids::create_bind_group");
         transforms_meta.transform_buffer_bind_group = create_bind_group_span.in_scope(|| {
-            Some(render_device.create_bind_group(&BindGroupDescriptor {
-                label: Some("gpu_cuboids_transforms_bind_group"),
-                layout: &pipeline.transforms_layout,
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: transforms_binding,
-                }],
-            }))
+            Some(render_device.create_bind_group(
+                "gpu_cuboids_transforms_bind_group",
+                &pipeline.transforms_layout,
+                &BindGroupEntries::single(transforms_binding),
+            ))
         });
     } else {
         assert!(transform_uniforms.is_empty());
@@ -110,14 +98,11 @@ pub(crate) fn prepare_cuboids(
         });
 
         entry.instance_buffer_bind_group = create_bind_group_span.in_scope(|| {
-            Some(render_device.create_bind_group(&BindGroupDescriptor {
-                label: Some("cuboids_instance_buffer_bind_group"),
-                layout: &pipeline.cuboids_layout,
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: entry.instance_buffer.binding().unwrap(),
-                }],
-            }))
+            Some(render_device.create_bind_group(
+                "cuboids_instance_buffer_bind_group",
+                &pipeline.cuboids_layout,
+                &BindGroupEntries::single(entry.instance_buffer.binding().unwrap()),
+            ))
         });
 
         entry.dirty = false;
@@ -131,14 +116,10 @@ pub(crate) fn prepare_cuboids_view_bind_group(
     view_uniforms: Res<ViewUniforms>,
 ) {
     if let Some(view_binding) = view_uniforms.uniforms.binding() {
-        view_meta.cuboids_view_bind_group =
-            Some(render_device.create_bind_group(&BindGroupDescriptor {
-                entries: &[BindGroupEntry {
-                    binding: 0,
-                    resource: view_binding,
-                }],
-                label: Some("cuboids_view_bind_group"),
-                layout: &cuboids_pipeline.view_layout,
-            }));
+        view_meta.cuboids_view_bind_group = Some(render_device.create_bind_group(
+            "cuboids_view_bind_group",
+            &cuboids_pipeline.view_layout,
+            &BindGroupEntries::single(view_binding),
+        ));
     }
 }

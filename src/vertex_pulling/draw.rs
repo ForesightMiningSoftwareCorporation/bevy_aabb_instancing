@@ -164,7 +164,7 @@ impl<P: PhaseItem> RenderCommand<P> for DrawVertexPulledCuboids {
         let num_cuboids = entry.instance_buffer.get().len().try_into().unwrap();
         let index_buffer = index_buffers
             .into_inner()
-            .get(&CUBE_INDICES_HANDLE.typed())
+            .get(&CUBE_INDICES_HANDLE)
             .unwrap();
         pass.set_index_buffer(index_buffer.slice(..), 0, IndexFormat::Uint32);
         pass.draw_indexed(0..(CUBE_INDICES.len() as u32), 0, 0..num_cuboids);
